@@ -1,0 +1,41 @@
+{
+  "name": "aidev-cli",
+  "version": "1.0.0",
+  "description": "AI-powered terminal coding assistant — supports Claude, GPT, DeepSeek, Gemini and any OpenAI-compatible API",
+  "main": "dist/index.js",
+  "bin": { "aidev": "./dist/index.js" },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "lint": "eslint src/",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "tsc --noEmit && eslint src/",
+    "format": "prettier --write src/"
+  },
+  "keywords": ["ai", "coding-assistant", "cli", "terminal", "code-generation", "claude", "gpt", "deepseek"],
+  "author": "WuSuBuDuoMing",
+  "license": "MIT",
+  "engines": { "node": ">=18.0.0" },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "inquirer": "^9.2.0",
+    "marked": "^12.0.0",
+    "marked-terminal": "^7.0.0",
+    "ora": "^8.0.0",
+    "cli-highlight": "^2.1.11",
+    "diff": "^5.2.0",
+    "glob": "^10.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "@types/node": "^20.14.0",
+    "tsx": "^4.16.0",
+    "vitest": "^2.0.0",
+    "eslint": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "prettier": "^3.3.0"
+  }
+}
