@@ -206,7 +206,7 @@ export function loadConfig(cwd?: string): AppConfig {
     throw new Error(`Configuration errors:\n${errors.map((e) => `  - ${e}`).join('\n')}`);
   }
 
-  return config as AppConfig;
+  return config as unknown as AppConfig;
 }
 
 /** Get the global config directory path. */

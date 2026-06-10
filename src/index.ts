@@ -396,6 +396,7 @@ program
     // Start interactive mode
     newConversation();
     printBanner();
+    const c = getColors();
     console.log(c.muted(`  Project: ${projectContext.language} / ${projectContext.framework}`));
     if (projectContext.gitInfo) {
       console.log(c.muted(`  Branch:  ${projectContext.gitInfo.branch}`));
