@@ -35,13 +35,13 @@ describe('validateConfig', () => {
   });
 
   it('rejects invalid theme', () => {
-    const errors = validateConfig({ theme: 'neon' });
+    const errors = validateConfig({ theme: 'neon' as any });
     expect(errors).toHaveLength(1);
     expect(errors[0]).toContain('Invalid theme');
   });
 
   it('rejects invalid defaultPermission', () => {
-    const errors = validateConfig({ defaultPermission: 'maybe' });
+    const errors = validateConfig({ defaultPermission: 'maybe' as any });
     expect(errors).toHaveLength(1);
     expect(errors[0]).toContain('Invalid defaultPermission');
   });
@@ -50,7 +50,7 @@ describe('validateConfig', () => {
     const errors = validateConfig({
       provider: 'bad' as AIProviderEnum,
       temperature: 99,
-      theme: 'x',
+      theme: 'x' as any,
     });
     expect(errors.length).toBeGreaterThanOrEqual(3);
   });
