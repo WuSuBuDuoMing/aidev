@@ -47,8 +47,10 @@ export function parseSkillFile(filePath: string): Skill | null {
  * Parse skill content from a raw string.
  */
 export function parseSkillContent(raw: string, filePath?: string): Skill | null {
+  // Normalize Windows line endings
+  const normalized = raw.replace(/\r\n/g, '\n');
   // Must start with YAML frontmatter delimited by ---
-  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+  const match = normalized.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!match) return null;
 
   const frontmatter = match[1];

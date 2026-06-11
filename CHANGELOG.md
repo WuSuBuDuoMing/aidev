@@ -104,4 +104,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Permission control system for file read/write/execute operations
 - No telemetry or data collection
 
+## [1.1.0] - 2026-06-11
+
+### Added
+
+#### Test Coverage
+- Added 89 unit tests across 6 test files covering all core modules
+- `types.test.ts` — AIProviderEnum, COST_TABLE, estimateCost (12 tests)
+- `config.test.ts` — validateConfig, loadConfig with env overrides, path helpers (16 tests)
+- `provider.test.ts` — createProvider factory, defaultBaseUrl, defaultModel (16 tests)
+- `tools.test.ts` — checkPermission, ToolRegistry, createBuiltinRegistry (18 tests)
+- `skills.test.ts` — parseSkillContent, resolveSkill (12 tests)
+- `prompts.test.ts` — all prompt templates, getSpecializedPrompts (15 tests)
+- Added vitest.config.ts with proper configuration
+
+### Fixed
+
+- Skills parser now correctly handles Windows-style line endings (`\r\n`) in frontmatter files
+- Config system silently ignores invalid `AIDEV_PROVIDER` env values instead of throwing
+
+### Changed
+
+- Version bump to 1.1.0
+
+[1.1.0]: https://github.com/WuSuBuDuoMing/aidev/releases/tag/v1.1.0
 [1.0.0]: https://github.com/WuSuBuDuoMing/aidev/releases/tag/v1.0.0
