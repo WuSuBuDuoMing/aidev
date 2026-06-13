@@ -104,6 +104,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Permission control system for file read/write/execute operations
 - No telemetry or data collection
 
+## [1.2.0] - 2026-06-14
+
+### Changed
+- Local optimization and performance improvements
+- TypeScript fixes and type safety improvements
+- CI workflow improvements
+- Documentation updates
+
 ## [1.1.0] - 2026-06-11
 
 ### Added
@@ -127,5 +135,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Version bump to 1.1.0
 
+[1.2.0]: https://github.com/WuSuBuDuoMing/aidev/releases/tag/v1.2.0
 [1.1.0]: https://github.com/WuSuBuDuoMing/aidev/releases/tag/v1.1.0
 [1.0.0]: https://github.com/WuSuBuDuoMing/aidev/releases/tag/v1.0.0
