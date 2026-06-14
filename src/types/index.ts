@@ -29,7 +29,10 @@ export interface Message {
   content: string;
   timestamp: number;
   toolCalls?: ToolCall[];
+  /** ID of the tool call this message is a result for (for role='tool' messages) */
   toolCallId?: string;
+  /** Name of the tool being called (for role='tool' messages, used by Gemini) */
+  toolName?: string;
 }
 
 /** A full conversation with metadata */
@@ -65,6 +68,13 @@ export interface ToolParameters {
   required?: string[];
 }
 
+/** Tool definition sent to AI providers for function calling */
+export interface ToolDefinition {
+  name: string;
+  description: string;
+  parameters: ToolParameters;
+}
+
 /** Result returned by a tool execution */
 export interface ToolResult {
   success: boolean;
@@ -89,7 +99,7 @@ export interface Permission {
   mode: PermissionMode;
 }
 
-/** A registered plugin */
+/** A registered plugin (TODO: plugin system not yet implemented) */
 export interface Plugin {
   name: string;
   version: string;
@@ -98,7 +108,7 @@ export interface Plugin {
   tools: Tool[];
 }
 
-/** A command contributed by a plugin */
+/** A command contributed by a plugin (TODO: plugin system not yet implemented) */
 export interface PluginCommand {
   name: string;
   description: string;

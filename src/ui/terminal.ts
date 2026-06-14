@@ -10,6 +10,8 @@
 import * as readline from 'readline';
 import chalk from 'chalk';
 import { highlight } from 'cli-highlight';
+import { Marked } from 'marked';
+import TerminalRenderer from 'marked-terminal';
 
 // ---------------------------------------------------------------------------
 // Theme
@@ -105,81 +107,43 @@ export function getColors(): ThemeColors {
 }
 
 // ---------------------------------------------------------------------------
-// Markdown rendering with syntax highlighting
+// Markdown rendering with syntax highlighting (powered by marked)
 // ---------------------------------------------------------------------------
 
-/** Naively render markdown to the terminal with syntax-highlighted code blocks. */
-export function renderMarkdown(text: string): string {
-  const lines = text.split('\n');
-  const output: string[] = [];
-  let inCodeBlock = false;
-  let codeLang = '';
-  let codeLines: string[] = [];
-
-  for (const line of lines) {
-    // Fenced code block toggle
-    if (line.trimStart().startsWith('```')) {
-      if (!inCodeBlock) {
-        inCodeBlock = true;
-        codeLang = line.trimStart().slice(3).trim();
-        codeLines = [];
-      } else {
-        // Close code block
-        const code = codeLines.join('\n');
+/** Create a configured Marked instance for terminal output. */
+function createMarked(): Marked {
+  const marked = new Marked();
+  marked.setOptions({
+    renderer: new TerminalRenderer({
+      codespan: (text: string) => currentColors.code(` ${text} `),
+      code: (code: string, lang: string | undefined) => {
         try {
-          const highlighted = highlight(code, { language: codeLang || undefined, ignoreIllegals: true });
-          output.push(currentColors.code('┌' + '─'.repeat(60)));
-          for (const hl of highlighted.split('\n')) {
-            output.push(currentColors.code('│ ') + hl);
-          }
-          output.push(currentColors.code('└' + '─'.repeat(60)));
+          const highlighted = highlight(code, { language: lang || undefined, ignoreIllegals: true });
+          const border = currentColors.code('┌' + '─'.repeat(60));
+          const footer = currentColors.code('└' + '─'.repeat(60));
+          const lines = highlighted.split('\n').map((l: string) => currentColors.code('│ ') + l).join('\n');
+          return `${border}\n${lines}\n${footer}`;
         } catch {
-          output.push(currentColors.code(code));
+          return currentColors.code(code);
         }
-        inCodeBlock = false;
-        codeLang = '';
-        codeLines = [];
-      }
-      continue;
-    }
+      },
+      showSectionPrefix: false,
+      tab: 2,
+    }) as never,
+  });
+  return marked;
+}
 
-    if (inCodeBlock) {
-      codeLines.push(line);
-      continue;
-    }
+let markedInstance: Marked | null = null;
 
-    // Inline rendering
-    let rendered = line;
+function getMarked(): Marked {
+  if (!markedInstance) markedInstance = createMarked();
+  return markedInstance;
+}
 
-    // Headers
-    if (/^#{1,6}\s/.test(rendered)) {
-      const level = rendered.match(/^(#{1,6})/)?.[1].length ?? 1;
-      rendered = rendered.replace(/^#{1,6}\s+/, '');
-      if (level === 1) rendered = currentColors.primary.bold.underline(rendered);
-      else if (level === 2) rendered = currentColors.primary.bold(rendered);
-      else rendered = currentColors.accent.bold(rendered);
-      output.push(rendered);
-      continue;
-    }
-
-    // Bold + italic
-    rendered = rendered.replace(/\*\*\*(.+?)\*\*\*/g, (_, m) => chalk.bold.italic(m));
-    rendered = rendered.replace(/\*\*(.+?)\*\*/g, (_, m) => chalk.bold(m));
-    rendered = rendered.replace(/\*(.+?)\*/g, (_, m) => chalk.italic(m));
-
-    // Inline code
-    rendered = rendered.replace(/`([^`]+)`/g, (_, m) => currentColors.code(` ${m} `));
-
-    // Unordered list
-    rendered = rendered.replace(/^(\s*)[-*+]\s/, `$1${currentColors.accent('  ')}• `);
-
-    // Ordered list
-    rendered = rendered.replace(/^(\s*)(\d+)\.\s/, `$1${currentColors.accent('  $2.')}`);
-
-    output.push(rendered);
-  }
-
-  return output.join('\n');
+/** Render markdown to the terminal with syntax-highlighted code blocks. */
+export function renderMarkdown(text: string): string {
+  return getMarked().parse(text) as string;
 }
 
 // ---------------------------------------------------------------------------
@@ -219,12 +183,9 @@ export class StreamWriter {
   }
 
   private flushLine(): void {
-    // Simple inline rendering (full markdown is done at end)
-    let line = this.lineBuffer;
-    line = line.replace(/`([^`]+)`/g, (_, m) => currentColors.code(` ${m} `));
-    line = line.replace(/\*\*(.+?)\*\*/g, (_, m) => chalk.bold(m));
-    line = line.replace(/^#{1,6}\s+(.*)/, (_, m) => currentColors.primary.bold(m));
-    process.stdout.write(line + '\n');
+    // Use marked for consistent rendering
+    const rendered = renderMarkdown(this.lineBuffer);
+    process.stdout.write(rendered + '\n');
     this.lineBuffer = '';
   }
 }
@@ -278,12 +239,20 @@ export function renderDiff(diffText: string): string {
 // Status bar
 // ---------------------------------------------------------------------------
 
+/** Strip ANSI escape codes from a string for accurate visible-length measurement. */
+function stripAnsi(str: string): string {
+  // eslint-disable-next-line no-control-regex
+  return str.replace(/\x1B\[[0-9;]*m/g, '');
+}
+
 /** Render a one-line status bar. */
 export function statusBar(provider: string, model: string, theme: ThemeName): string {
   const left = ` ${currentColors.primary(provider)} ${currentColors.secondary('/')}`;
   const right = `${currentColors.muted(model)} ${currentColors.secondary('/')} ${currentColors.muted(theme)} `;
   const width = process.stdout.columns || 80;
-  const padding = Math.max(0, width - left.length - right.length - 2);
+  const visibleLeftLen = stripAnsi(left).length;
+  const visibleRightLen = stripAnsi(right).length;
+  const padding = Math.max(0, width - visibleLeftLen - visibleRightLen - 2);
   return `${currentColors.accent('─'.repeat(width))}\n${left}${' '.repeat(padding)}${right}\n${currentColors.accent('─'.repeat(width))}`;
 }
 

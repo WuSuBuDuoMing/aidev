@@ -11,7 +11,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { execSync, execFileSync } from 'child_process';
 import { glob } from 'glob';
 import * as Diff from 'diff';
 import {
@@ -25,6 +25,13 @@ import {
 // ---------------------------------------------------------------------------
 // Permission Engine
 // ---------------------------------------------------------------------------
+
+/** Check if a resolved path is within the project directory. */
+function isPathInProject(filePath: string): boolean {
+  const projectRoot = path.resolve(process.cwd());
+  const resolved = path.resolve(filePath);
+  return resolved.startsWith(projectRoot + path.sep) || resolved === projectRoot;
+}
 
 /**
  * Decide whether a tool invocation is allowed.
@@ -108,6 +115,9 @@ function createWriteFileTool(): Tool {
     async execute(args) {
       try {
         const filePath = path.resolve(String(args.path));
+        if (!isPathInProject(filePath)) {
+          return { success: false, output: '', error: `Write denied: ${filePath} is outside the project directory.` };
+        }
         fs.mkdirSync(path.dirname(filePath), { recursive: true });
         fs.writeFileSync(filePath, String(args.content), 'utf-8');
         return { success: true, output: `Wrote ${filePath}` };
@@ -136,6 +146,9 @@ function createEditFileTool(): Tool {
     async execute(args) {
       try {
         const filePath = path.resolve(String(args.path));
+        if (!isPathInProject(filePath)) {
+          return { success: false, output: '', error: `Edit denied: ${filePath} is outside the project directory.` };
+        }
         if (!fs.existsSync(filePath)) {
           return { success: false, output: '', error: `File not found: ${filePath}` };
         }
@@ -156,7 +169,7 @@ function createEditFileTool(): Tool {
           };
         }
 
-        const newContent = content.replace(oldText, newText);
+        const newContent = content.replace(oldText, () => newText);
         const diff = Diff.createPatch(filePath, content, newContent);
         fs.writeFileSync(filePath, newContent, 'utf-8');
 
@@ -308,10 +321,9 @@ function createGitCommitTool(): Tool {
     async execute(args) {
       try {
         if (args.all) {
-          execSync('git add -A', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
+          execFileSync('git', ['add', '-A'], { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
         }
-        const msg = String(args.message).replace(/'/g, "'\\''");
-        execSync(`git commit -m '${msg}'`, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
+        execFileSync('git', ['commit', '-m', String(args.message)], { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
         return { success: true, output: 'Commit created.' };
       } catch (err) {
         return { success: false, output: '', error: String(err) };

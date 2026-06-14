@@ -416,9 +416,57 @@ register({
 
 register({
   name: 'resume',
-  description: 'Resume a past conversation (placeholder).',
-  async handler(_args, ctx) {
-    ctx.assistantPrint(getColors().muted('Conversation persistence is not yet implemented.'));
+  description: 'Resume a past conversation from the database.',
+  async handler(args, ctx) {
+    const c = getColors();
+    const { loadSession, listSessions } = require('../storage/session') as typeof import('../storage/session');
+
+    let sessionId = args[0];
+    if (!sessionId) {
+      // Show the most recent session
+      const sessions = listSessions(5);
+      if (sessions.length === 0) {
+        ctx.assistantPrint(c.muted('No saved sessions found.'));
+        return;
+      }
+      sessionId = sessions[0].id;
+    }
+
+    const session = loadSession(sessionId);
+    if (!session) {
+      ctx.assistantPrint(c.error(`Session not found: ${sessionId}`));
+      return;
+    }
+
+    // Replace current conversation
+    ctx.conversation.id = session.id;
+    ctx.conversation.title = session.title;
+    ctx.conversation.messages = session.messages;
+    ctx.conversation.provider = session.provider;
+    ctx.conversation.model = session.model;
+    ctx.assistantPrint(c.success(`Resumed session: ${session.title} (${session.messages.length} messages)`));
+  },
+});
+
+register({
+  name: 'sessions',
+  description: 'List recent saved sessions.',
+  async handler(args, ctx) {
+    const c = getColors();
+    const { listSessions } = require('../storage/session') as typeof import('../storage/session');
+    const limit = args[0] ? parseInt(args[0], 10) : 10;
+    const sessions = listSessions(limit);
+
+    if (sessions.length === 0) {
+      ctx.assistantPrint(c.muted('No saved sessions found.'));
+      return;
+    }
+
+    ctx.assistantPrint(c.primary.bold('\n  Recent Sessions\n'));
+    for (const s of sessions) {
+      ctx.assistantPrint(`  ${c.secondary(s.id.slice(0, 16))}  ${c.muted(s.title)}  ${c.muted(`(${s.message_count} msgs, ${s.updated_at})`)}`);
+    }
+    ctx.assistantPrint('');
   },
 });
 

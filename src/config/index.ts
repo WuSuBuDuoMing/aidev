@@ -53,7 +53,6 @@ const DEFAULT_CONFIG: AppConfig = {
 /** Safely read and parse a JSON file. Returns `null` on any error. */
 function readJsonFile(filePath: string): Record<string, unknown> | null {
   try {
-    if (!fs.existsSync(filePath)) return null;
     const raw = fs.readFileSync(filePath, 'utf-8');
     return JSON.parse(raw) as Record<string, unknown>;
   } catch {
@@ -62,23 +61,25 @@ function readJsonFile(filePath: string): Record<string, unknown> | null {
 }
 
 /** Deep-merge source into target (source wins on conflict). */
-function deepMerge<T extends Record<string, unknown>>(target: T, source: Partial<T>): T {
+function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
   const result = { ...target };
-  for (const key of Object.keys(source) as (keyof T)[]) {
+  for (const key of Object.keys(source)) {
+    const srcVal = source[key];
+    const tgtVal = target[key];
     if (
-      source[key] &&
-      typeof source[key] === 'object' &&
-      !Array.isArray(source[key]) &&
-      target[key] &&
-      typeof target[key] === 'object' &&
-      !Array.isArray(target[key])
+      srcVal &&
+      typeof srcVal === 'object' &&
+      !Array.isArray(srcVal) &&
+      tgtVal &&
+      typeof tgtVal === 'object' &&
+      !Array.isArray(tgtVal)
     ) {
       result[key] = deepMerge(
-        target[key] as Record<string, unknown>,
-        source[key] as Record<string, unknown>,
-      ) as T[keyof T];
-    } else if (source[key] !== undefined) {
-      result[key] = source[key] as T[keyof T];
+        tgtVal as Record<string, unknown>,
+        srcVal as Record<string, unknown>,
+      );
+    } else if (srcVal !== undefined) {
+      result[key] = srcVal;
     }
   }
   return result;
@@ -184,13 +185,13 @@ export function loadConfig(cwd?: string): AppConfig {
   }
 
   const envTemp = process.env.AIDEV_TEMPERATURE;
-  if (envTemp) {
+  if (envTemp !== undefined && envTemp !== '') {
     const parsed = parseFloat(envTemp);
     if (!isNaN(parsed)) config.temperature = parsed;
   }
 
   const envMaxTokens = process.env.AIDEV_MAX_TOKENS;
-  if (envMaxTokens) {
+  if (envMaxTokens !== undefined && envMaxTokens !== '') {
     const parsed = parseInt(envMaxTokens, 10);
     if (!isNaN(parsed)) config.maxTokens = parsed;
   }
@@ -206,7 +207,9 @@ export function loadConfig(cwd?: string): AppConfig {
     throw new Error(`Configuration errors:\n${errors.map((e) => `  - ${e}`).join('\n')}`);
   }
 
-  return config as unknown as AppConfig;
+  // Merge over defaults to guarantee all required fields are present.
+  // This avoids unsafe double-casts while preserving env/override values.
+  return { ...DEFAULT_CONFIG, ...config } as AppConfig;
 }
 
 /** Get the global config directory path. */

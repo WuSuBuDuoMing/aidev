@@ -11,9 +11,11 @@
 
 import { Command } from 'commander';
 import * as readline from 'readline';
+import * as fs from 'fs';
+import * as path from 'path';
 import chalk from 'chalk';
 
-import { AppConfig, Conversation, Message, Skill } from './types';
+import { AppConfig, Conversation, Message, Skill, ToolDefinition } from './types';
 import { loadConfig, saveGlobalConfig } from './config';
 import { createProvider, defaultModel, defaultBaseUrl } from './ai/provider';
 import { codingAssistantPrompt } from './ai/prompts';
@@ -36,12 +38,21 @@ import {
   getAllCommands,
 } from './commands';
 import { loadAllSkills, resolveSkill } from './skills';
+import { saveSession } from './storage/session';
 
 // ---------------------------------------------------------------------------
 // Version
 // ---------------------------------------------------------------------------
 
-const VERSION = '1.0.0';
+// Read version from package.json (avoids hardcoding)
+const VERSION: string = (() => {
+  try {
+    const pkgPath = path.join(__dirname, '..', 'package.json');
+    return JSON.parse(fs.readFileSync(pkgPath, 'utf-8')).version ?? '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+})();
 
 // ---------------------------------------------------------------------------
 // REPL state
@@ -103,8 +114,23 @@ function buildCommandContext(): CommandContext {
 }
 
 // ---------------------------------------------------------------------------
-// Process a single user message (chat + AI interaction)
+// Process a single user message (chat + AI interaction with tool calling)
 // ---------------------------------------------------------------------------
+
+/** Maximum number of tool call rounds to prevent doom loops */
+const MAX_TOOL_ROUNDS = 10;
+
+/** Display token usage and estimated cost. */
+function displayTokenUsage(result: { usage: { promptTokens: number; completionTokens: number; totalTokens: number }; estimatedCost: number }): void {
+  if (!config.showTokenCounts || result.usage.totalTokens <= 0) return;
+  const c = getColors();
+  const costStr = result.estimatedCost > 0 ? ` (~$${result.estimatedCost.toFixed(4)})` : '';
+  console.log(
+    c.muted(
+      `\n  Tokens: ${result.usage.promptTokens} in / ${result.usage.completionTokens} out / ${result.usage.totalTokens} total${costStr}`,
+    ),
+  );
+}
 
 async function processMessage(userInput: string): Promise<void> {
   const c = getColors();
@@ -152,82 +178,122 @@ async function processMessage(userInput: string): Promise<void> {
     thinkingEnabled: config.thinkingEnabled,
   });
 
-  if (config.stream) {
-    // Streaming mode
-    const writer = new StreamWriter();
-    try {
-      const result = await provider.stream(
-        conversation.messages,
-        (chunk) => {
-          if (chunk.thinking && config.thinkingEnabled) {
-            // Show thinking in muted italic
-            process.stdout.write(c.thinking(chunk.thinking));
-          }
-          if (chunk.content) {
-            writer.write(chunk.content);
-          }
-        },
-        systemPrompt,
+  // Get tool definitions from registry
+  const toolDefs: ToolDefinition[] = toolRegistry.getDefinitions();
+
+  // Ask-user callback for permission system
+  const askUser = async (toolName: string): Promise<boolean> => {
+    return confirmAction(`Allow tool "${toolName}" to run?`);
+  };
+
+  // Tool call loop: keep calling AI until it returns text (no more tool calls)
+  for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+    let result: Awaited<ReturnType<typeof provider.generate>>;
+
+    if (config.stream) {
+      // Streaming mode
+      const writer = new StreamWriter();
+      try {
+        result = await provider.stream(
+          conversation.messages,
+          (chunk) => {
+            if (chunk.thinking && config.thinkingEnabled) {
+              process.stdout.write(c.thinking(chunk.thinking));
+            }
+            if (chunk.content) {
+              writer.write(chunk.content);
+            }
+          },
+          systemPrompt,
+          toolDefs.length > 0 ? toolDefs : undefined,
+        );
+        writer.end();
+      } catch (err) {
+        writer.end();
+        console.error(c.error(`\nError: ${String(err)}`));
+        return;
+      }
+    } else {
+      // Non-streaming mode
+      const spin = spinner('Thinking...');
+      try {
+        result = await provider.generate(
+          conversation.messages,
+          systemPrompt,
+          toolDefs.length > 0 ? toolDefs : undefined,
+        );
+        spin.stop();
+
+        if (result.thinking && config.thinkingEnabled) {
+          console.log(c.thinking(`[Thinking]\n${result.thinking}\n`));
+        }
+
+        if (result.content) {
+          console.log(renderMarkdown(result.content));
+        }
+      } catch (err) {
+        spin.stop();
+        console.error(c.error(`\nError: ${String(err)}`));
+        return;
+      }
+    }
+
+    // Store assistant response
+    const assistantMessage: Message = {
+      role: 'assistant',
+      content: result.content,
+      timestamp: Date.now(),
+      ...(result.toolCalls && result.toolCalls.length > 0 ? { toolCalls: result.toolCalls } : {}),
+    };
+    conversation.messages.push(assistantMessage);
+
+    // Show token usage
+    displayTokenUsage(result);
+
+    // If no tool calls, we're done
+    if (!result.toolCalls || result.toolCalls.length === 0) {
+      // Save conversation to database
+      try { saveSession(conversation); } catch { /* best-effort save */ }
+      return;
+    }
+
+    // Execute tool calls
+    console.log(c.accent(`\n  [Tool Calls: ${result.toolCalls.map((tc) => tc.name).join(', ')}]\n`));
+
+    for (const toolCall of result.toolCalls) {
+      const toolResult = await toolRegistry.execute(
+        toolCall.name,
+        toolCall.arguments,
+        config.permissions,
+        config.defaultPermission,
+        askUser,
       );
-      writer.end();
 
-      // Store assistant response
+      // Show tool result summary
+      if (toolResult.success) {
+        const preview = toolResult.output.length > 200
+          ? toolResult.output.slice(0, 200) + '...'
+          : toolResult.output;
+        console.log(c.success(`  ✓ ${toolCall.name}: `) + c.muted(preview.replace(/\n/g, ' ')));
+      } else {
+        console.log(c.error(`  ✗ ${toolCall.name}: ${toolResult.error}`));
+      }
+
+      // Add tool result to conversation
       conversation.messages.push({
-        role: 'assistant',
-        content: result.content,
+        role: 'tool',
+        content: toolResult.success ? toolResult.output : `Error: ${toolResult.error}`,
         timestamp: Date.now(),
+        toolCallId: toolCall.id,
+        toolName: toolCall.name,
       });
-
-      // Show token usage
-      if (config.showTokenCounts && result.usage.totalTokens > 0) {
-        const costStr = result.estimatedCost > 0
-          ? ` (~$${result.estimatedCost.toFixed(4)})`
-          : '';
-        console.log(
-          c.muted(
-            `\n  Tokens: ${result.usage.promptTokens} in / ${result.usage.completionTokens} out / ${result.usage.totalTokens} total${costStr}`,
-          ),
-        );
-      }
-    } catch (err) {
-      writer.end();
-      console.error(c.error(`\nError: ${String(err)}`));
     }
-  } else {
-    // Non-streaming mode
-    const spin = spinner('Thinking...');
-    try {
-      const result = await provider.generate(conversation.messages, systemPrompt);
-      spin.stop();
 
-      // Display thinking if available
-      if (result.thinking && config.thinkingEnabled) {
-        console.log(c.thinking(`[Thinking]\n${result.thinking}\n`));
-      }
-
-      console.log(renderMarkdown(result.content));
-
-      conversation.messages.push({
-        role: 'assistant',
-        content: result.content,
-        timestamp: Date.now(),
-      });
-
-      if (config.showTokenCounts && result.usage.totalTokens > 0) {
-        const costStr = result.estimatedCost > 0
-          ? ` (~$${result.estimatedCost.toFixed(4)})`
-          : '';
-        console.log(
-          c.muted(
-            `\n  Tokens: ${result.usage.promptTokens} in / ${result.usage.completionTokens} out / ${result.usage.totalTokens} total${costStr}`,
-          ),
-        );
-      }
-    } catch (err) {
-      spin.stop();
-      console.error(c.error(`\nError: ${String(err)}`));
-    }
+    console.log(''); // separator before next round
+    // Loop continues — AI will see the tool results and may call more tools
   }
+
+  console.log(c.warning(`\n  [Reached maximum tool call rounds (${MAX_TOOL_ROUNDS})]`));
 }
 
 // ---------------------------------------------------------------------------
@@ -368,20 +434,36 @@ program
       const messages: Message[] = [
         { role: 'user', content: opts.question, timestamp: Date.now() },
       ];
+      const toolDefs: ToolDefinition[] = toolRegistry.getDefinitions();
 
-      const spin = spinner('Thinking...');
-      try {
-        const result = await provider.generate(messages, systemPrompt);
-        spin.stop();
-        console.log(renderMarkdown(result.content));
-        if (config.showTokenCounts && result.usage.totalTokens > 0) {
-          const c = getColors();
-          console.log(c.muted(`\n  Tokens: ${result.usage.totalTokens} total`));
+      // Tool call loop for single-question mode
+      for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+        const spin = spinner('Thinking...');
+        let result: Awaited<ReturnType<typeof provider.generate>>;
+        try {
+          result = await provider.generate(messages, systemPrompt, toolDefs.length > 0 ? toolDefs : undefined);
+          spin.stop();
+          if (result.content) console.log(renderMarkdown(result.content));
+        } catch (err) {
+          spin.stop();
+          console.error(chalk.red(`Error: ${String(err)}`));
+          process.exit(1);
         }
-      } catch (err) {
-        spin.stop();
-        console.error(chalk.red(`Error: ${String(err)}`));
-        process.exit(1);
+
+        if (!result.toolCalls || result.toolCalls.length === 0) {
+          if (config.showTokenCounts && result.usage.totalTokens > 0) {
+            const c = getColors();
+            console.log(c.muted(`\n  Tokens: ${result.usage.totalTokens} total`));
+          }
+          process.exit(0);
+        }
+
+        // Execute tool calls
+        messages.push({ role: 'assistant', content: result.content, timestamp: Date.now(), toolCalls: result.toolCalls });
+        for (const toolCall of result.toolCalls) {
+          const toolResult = await toolRegistry.execute(toolCall.name, toolCall.arguments, config.permissions, config.defaultPermission);
+          messages.push({ role: 'tool', content: toolResult.success ? toolResult.output : `Error: ${toolResult.error}`, timestamp: Date.now(), toolCallId: toolCall.id, toolName: toolCall.name });
+        }
       }
       process.exit(0);
     }
