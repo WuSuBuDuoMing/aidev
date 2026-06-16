@@ -87,6 +87,8 @@ export interface Tool {
   name: string;
   description: string;
   parameters: ToolParameters;
+  /** Whether this tool only reads state (no side effects). Used for future parallel dispatch. */
+  readOnly?: boolean;
   execute: (args: Record<string, unknown>) => Promise<ToolResult>;
 }
 

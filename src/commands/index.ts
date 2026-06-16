@@ -9,7 +9,7 @@
 
 import * as readline from 'readline';
 import chalk from 'chalk';
-import { AppConfig, AIProviderEnum, Conversation, Message, PartialConfig } from '../types';
+import { AppConfig, AIProviderEnum, Conversation, Message, PartialConfig, Skill } from '../types';
 import { ToolRegistry } from '../tools';
 import { ProjectContext } from '../types';
 import { renderMarkdown, setTheme, getTheme, statusBar, horizontalRule, getColors } from '../ui/terminal';
@@ -24,6 +24,7 @@ import {
 } from '../ai/prompts';
 import { createProvider, defaultModel, defaultBaseUrl } from '../ai/provider';
 import { saveGlobalConfig, validateConfig } from '../config';
+import { loadSession, listSessions } from '../storage/session';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -35,6 +36,7 @@ export interface CommandContext {
   conversation: Conversation;
   projectContext: ProjectContext;
   toolRegistry: ToolRegistry;
+  skills: Skill[];
   /** Update the active config (partial merge). */
   updateConfig(patch: PartialConfig): void;
   /** Start a fresh conversation. */
@@ -343,9 +345,16 @@ register({
   async handler(_args, ctx) {
     const c = getColors();
     ctx.assistantPrint(c.primary.bold('\n  Available Skills\n'));
-    // Placeholder — real skill loading is in the skills module
-    ctx.assistantPrint(c.muted('  Skills are loaded from .aidev/skills/ and ~/.aidev/skills/\n'));
-    ctx.assistantPrint(c.muted('  Create YAML files with name, description, trigger, and prompt fields.\n'));
+    if (ctx.skills.length === 0) {
+      ctx.assistantPrint(c.muted('  No skills loaded.\n'));
+      ctx.assistantPrint(c.muted('  Create YAML files in .aidev/skills/ or ~/.aidev/skills/\n'));
+      return;
+    }
+    for (const skill of ctx.skills) {
+      const trigger = skill.trigger ? c.accent(`Trigger: ${skill.trigger}`) : '';
+      ctx.assistantPrint(`  ${c.secondary(skill.name)}  ${c.muted(skill.description)}  ${trigger}`);
+    }
+    ctx.assistantPrint('');
   },
 });
 
@@ -419,7 +428,6 @@ register({
   description: 'Resume a past conversation from the database.',
   async handler(args, ctx) {
     const c = getColors();
-    const { loadSession, listSessions } = require('../storage/session') as typeof import('../storage/session');
 
     let sessionId = args[0];
     if (!sessionId) {
@@ -453,7 +461,6 @@ register({
   description: 'List recent saved sessions.',
   async handler(args, ctx) {
     const c = getColors();
-    const { listSessions } = require('../storage/session') as typeof import('../storage/session');
     const limit = args[0] ? parseInt(args[0], 10) : 10;
     const sessions = listSessions(limit);
 

@@ -70,6 +70,7 @@ export async function checkPermission(
 function createReadFileTool(): Tool {
   return {
     name: 'readFile',
+    readOnly: true,
     description: 'Read the contents of a file at the given path.',
     parameters: {
       type: 'object',
@@ -184,6 +185,7 @@ function createEditFileTool(): Tool {
 function createSearchFilesTool(): Tool {
   return {
     name: 'searchFiles',
+    readOnly: true,
     description: 'Search for a pattern across files in the project using regex.',
     parameters: {
       type: 'object',
@@ -265,6 +267,7 @@ function createRunCommandTool(): Tool {
 function createGitStatusTool(): Tool {
   return {
     name: 'gitStatus',
+    readOnly: true,
     description: 'Show the current git status of the repository.',
     parameters: { type: 'object', properties: {} } as ToolParameters,
     async execute() {
@@ -284,6 +287,7 @@ function createGitStatusTool(): Tool {
 function createGitDiffTool(): Tool {
   return {
     name: 'gitDiff',
+    readOnly: true,
     description: 'Show git diff. Optionally diff staged changes or a specific file.',
     parameters: {
       type: 'object',
@@ -335,6 +339,7 @@ function createGitCommitTool(): Tool {
 function createListDirTool(): Tool {
   return {
     name: 'listDir',
+    readOnly: true,
     description: 'List files and directories at the given path.',
     parameters: {
       type: 'object',

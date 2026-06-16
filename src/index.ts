@@ -15,7 +15,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
 
-import { AppConfig, Conversation, Message, Skill, ToolDefinition } from './types';
+import { AppConfig, Conversation, Message, Skill, ToolCall, ToolDefinition } from './types';
 import { loadConfig, saveGlobalConfig } from './config';
 import { createProvider, defaultModel, defaultBaseUrl } from './ai/provider';
 import { codingAssistantPrompt } from './ai/prompts';
@@ -27,6 +27,7 @@ import {
   statusBar,
   horizontalRule,
   renderMarkdown,
+  renderDiff,
   StreamWriter,
   spinner,
   getColors,
@@ -86,6 +87,7 @@ function buildCommandContext(): CommandContext {
     conversation,
     projectContext,
     toolRegistry,
+    skills,
     updateConfig(patch) {
       Object.assign(config, patch);
     },
@@ -113,12 +115,105 @@ function buildCommandContext(): CommandContext {
   };
 }
 
+/** Maximum estimated tokens before triggering compaction. */
+const COMPACTION_THRESHOLD = 120_000;
+
+/**
+ * Lightweight context compaction: when the conversation exceeds the token
+ * threshold, replace the older half with a summary placeholder.
+ * (Inspired by DeepSeek-Reasonix's compaction system — summaries accumulate,
+ * never re-summarize, and tool results are pruned first.)
+ */
+function compactIfNeeded(): void {
+  const totalTokens = estimateConversationTokens(conversation.messages);
+  if (totalTokens < COMPACTION_THRESHOLD) return;
+
+  const c = getColors();
+  console.log(c.muted(`\n  [Compacting: ~${Math.round(totalTokens)} tokens estimated]`));
+
+  // Prune first to remove re-derivable data
+  conversation.messages = pruneToolResults(conversation.messages);
+
+  // Find a good boundary: keep system messages + first user turn + recent tail
+  const recentCount = Math.min(6, conversation.messages.length);
+  const keepRecent = conversation.messages.slice(-recentCount);
+  const foldable = conversation.messages.slice(0, -recentCount);
+
+  if (foldable.length === 0) return;
+
+  // Don't re-compact already-compacted sections
+  if (foldable.every((m) => m.content.startsWith('[Context Summary'))) return;
+
+  // Build a summary placeholder
+  const userTurns = foldable.filter((m) => m.role === 'user').length;
+  const assistantTurns = foldable.filter((m) => m.role === 'assistant').length;
+  const toolCalls = foldable.reduce((acc, m) => acc + (m.toolCalls?.length ?? 0), 0);
+  const topics = foldable.filter((m) => m.role === 'user').map((m) => m.content.slice(0, 60)).join('; ');
+
+  const summary: Message = {
+    role: 'system',
+    content: `[Context Summary: ${userTurns} user turns, ${assistantTurns} assistant responses, ${toolCalls} tool calls. Topics discussed: ${topics.slice(0, 300)}]`,
+    timestamp: Date.now(),
+  };
+
+  // Keep system messages from the start, then summary, then recent tail
+  const systemMessages = foldable.filter((m) => m.role === 'system' && !m.content.startsWith('[Context Summary'));
+  conversation.messages = [...systemMessages.slice(0, 1), summary, ...keepRecent];
+
+  const newTokens = estimateConversationTokens(conversation.messages);
+  console.log(c.muted(`  [Compacted to ~${Math.round(newTokens)} tokens]`));
+}
+
 // ---------------------------------------------------------------------------
 // Process a single user message (chat + AI interaction with tool calling)
 // ---------------------------------------------------------------------------
 
 /** Maximum number of tool call rounds to prevent doom loops */
 const MAX_TOOL_ROUNDS = 10;
+
+/** Storm breaker threshold: same (tool, error) signature N times → abort. */
+const STORM_BREAK_THRESHOLD = 3;
+
+/**
+ * Detect if the model is stuck in a death spiral.
+ * Keyed on (toolName, error) rather than (toolName, args) because the model
+ * keeps cosmetically reworking arguments while the failure stays identical.
+ * (Inspired by DeepSeek-Reasonix's storm breaker.)
+ */
+class StormBreaker {
+  private signatures = new Map<string, number>();
+
+  /** Record a failed tool call and return true if the storm threshold is breached. */
+  record(toolName: string, error: string | undefined): boolean {
+    if (!error) return false;
+    const sig = `${toolName}:${error.slice(0, 120)}`;
+    const count = (this.signatures.get(sig) ?? 0) + 1;
+    this.signatures.set(sig, count);
+    return count >= STORM_BREAK_THRESHOLD;
+  }
+
+  reset(): void {
+    this.signatures.clear();
+  }
+}
+
+/**
+ * Token estimation: calibrated from real API usage instead of a fixed heuristic.
+ * (Inspired by DeepSeek-Reasonix's calibrated tokPerChar.)
+ */
+let tokPerChar = 0.25; // initial guess (~4 chars/token for English)
+
+function estimateTokens(text: string): number {
+  return Math.ceil(text.length * tokPerChar);
+}
+
+function calibrateFromUsage(realUsage: { promptTokens: number; completionTokens: number }, sampleText: string): void {
+  if (sampleText.length > 0) {
+    const measured = sampleText.length / realUsage.completionTokens;
+    // Exponential moving average to smoothly adapt
+    tokPerChar = tokPerChar * 0.7 + (1 / measured) * 0.3;
+  }
+}
 
 /** Display token usage and estimated cost. */
 function displayTokenUsage(result: { usage: { promptTokens: number; completionTokens: number; totalTokens: number }; estimatedCost: number }): void {
@@ -130,6 +225,53 @@ function displayTokenUsage(result: { usage: { promptTokens: number; completionTo
       `\n  Tokens: ${result.usage.promptTokens} in / ${result.usage.completionTokens} out / ${result.usage.totalTokens} total${costStr}`,
     ),
   );
+}
+
+/**
+ * Estimate total tokens in the conversation.
+ * Uses the calibrated tokPerChar for a quick estimate without API calls.
+ */
+function estimateConversationTokens(messages: Message[]): number {
+  let total = 0;
+  for (const msg of messages) {
+    total += estimateTokens(msg.content || '');
+    if (msg.toolCalls) {
+      for (const tc of msg.toolCalls) {
+        total += estimateTokens(JSON.stringify(tc.arguments));
+      }
+    }
+  }
+  return total;
+}
+
+/**
+ * Prune re-derivable tool results to save context space.
+ * Files can be re-read, search results re-obtained.
+ * Replaces verbose outputs with compact placeholders.
+ * (Inspired by DeepSeek-Reasonix's tool result pruning.)
+ */
+function pruneToolResults(messages: Message[]): Message[] {
+  const REPRUNABLE = new Set(['readFile', 'searchFiles', 'listDir', 'gitStatus', 'gitDiff']);
+  const MAX_TOOL_OUTPUT = 500; // chars to keep for pruned results
+
+  // Only prune messages older than the last 3 rounds (keep recent context intact)
+  const cutoff = Math.max(0, messages.length - 8);
+
+  return messages.map((msg, i) => {
+    if (i >= cutoff) return msg;
+    if (msg.role !== 'tool' || !msg.toolName || !REPRUNABLE.has(msg.toolName)) return msg;
+
+    // Already pruned
+    if (msg.content.startsWith('[Pruned:')) return msg;
+
+    const originalLen = msg.content.length;
+    if (originalLen <= MAX_TOOL_OUTPUT) return msg;
+
+    return {
+      ...msg,
+      content: `[Pruned: ${msg.toolName} output (${originalLen} chars). Re-run the tool to get fresh data.]`,
+    };
+  });
 }
 
 async function processMessage(userInput: string): Promise<void> {
@@ -164,8 +306,16 @@ async function processMessage(userInput: string): Promise<void> {
   conversation.messages.push(userMessage);
   conversation.updatedAt = Date.now();
 
+  // Auto-title: use first user message as session title
+  if (conversation.title === 'New Conversation' && conversation.messages.filter((m) => m.role === 'user').length === 1) {
+    conversation.title = userInput.length > 60 ? userInput.slice(0, 57) + '...' : userInput;
+  }
+
   // Build system prompt
   const systemPrompt = codingAssistantPrompt(projectContext);
+
+  // Auto-compact if conversation is getting too long
+  compactIfNeeded();
 
   // Create provider
   const provider = createProvider({
@@ -186,8 +336,14 @@ async function processMessage(userInput: string): Promise<void> {
     return confirmAction(`Allow tool "${toolName}" to run?`);
   };
 
+  // Storm breaker: detect death-spiral loops by (tool, error) signature
+  const stormBreaker = new StormBreaker();
+
   // Tool call loop: keep calling AI until it returns text (no more tool calls)
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+    // Prune old tool results before sending to AI (saves context space)
+    const prunedMessages = pruneToolResults(conversation.messages);
+
     let result: Awaited<ReturnType<typeof provider.generate>>;
 
     if (config.stream) {
@@ -195,7 +351,7 @@ async function processMessage(userInput: string): Promise<void> {
       const writer = new StreamWriter();
       try {
         result = await provider.stream(
-          conversation.messages,
+          prunedMessages,
           (chunk) => {
             if (chunk.thinking && config.thinkingEnabled) {
               process.stdout.write(c.thinking(chunk.thinking));
@@ -208,6 +364,8 @@ async function processMessage(userInput: string): Promise<void> {
           toolDefs.length > 0 ? toolDefs : undefined,
         );
         writer.end();
+        // Calibrate token estimation from real usage
+        calibrateFromUsage(result.usage, result.content);
       } catch (err) {
         writer.end();
         console.error(c.error(`\nError: ${String(err)}`));
@@ -218,11 +376,13 @@ async function processMessage(userInput: string): Promise<void> {
       const spin = spinner('Thinking...');
       try {
         result = await provider.generate(
-          conversation.messages,
+          prunedMessages,
           systemPrompt,
           toolDefs.length > 0 ? toolDefs : undefined,
         );
         spin.stop();
+        // Calibrate token estimation from real usage
+        calibrateFromUsage(result.usage, result.content);
 
         if (result.thinking && config.thinkingEnabled) {
           console.log(c.thinking(`[Thinking]\n${result.thinking}\n`));
@@ -260,23 +420,66 @@ async function processMessage(userInput: string): Promise<void> {
     // Execute tool calls
     console.log(c.accent(`\n  [Tool Calls: ${result.toolCalls.map((tc) => tc.name).join(', ')}]\n`));
 
-    for (const toolCall of result.toolCalls) {
-      const toolResult = await toolRegistry.execute(
-        toolCall.name,
-        toolCall.arguments,
-        config.permissions,
-        config.defaultPermission,
-        askUser,
+    // Parallel dispatch for all-readOnly batches (inspired by Reasonix's parallel execution)
+    const allReadOnly = result.toolCalls.every((tc) => {
+      const tool = toolRegistry.get(tc.name);
+      return tool?.readOnly === true;
+    });
+
+    interface ToolCallResult {
+      toolCall: ToolCall;
+      toolResult: Awaited<ReturnType<ToolRegistry['execute']>>;
+    }
+
+    let toolCallResults: ToolCallResult[];
+
+    if (allReadOnly && result.toolCalls.length > 1) {
+      // All read-only → execute in parallel
+      toolCallResults = await Promise.all(
+        result.toolCalls.map(async (tc) => ({
+          toolCall: tc,
+          toolResult: await toolRegistry.execute(tc.name, tc.arguments, config.permissions, config.defaultPermission),
+        })),
       );
+    } else {
+      // Has write tools → execute sequentially
+      toolCallResults = [];
+      for (const tc of result.toolCalls) {
+        toolCallResults.push({
+          toolCall: tc,
+          toolResult: await toolRegistry.execute(tc.name, tc.arguments, config.permissions, config.defaultPermission, askUser),
+        });
+      }
+    }
+
+    for (const { toolCall, toolResult } of toolCallResults) {
 
       // Show tool result summary
       if (toolResult.success) {
-        const preview = toolResult.output.length > 200
-          ? toolResult.output.slice(0, 200) + '...'
-          : toolResult.output;
-        console.log(c.success(`  ✓ ${toolCall.name}: `) + c.muted(preview.replace(/\n/g, ' ')));
+        if (toolCall.name === 'editFile' && toolResult.output.includes('Diff:')) {
+          // Edit preview: show diff prominently
+          console.log(c.success(`  ✓ ${toolCall.name} applied:`));
+          const diffPart = toolResult.output.split('Diff:\n')[1] ?? toolResult.output;
+          console.log(renderDiff(diffPart));
+        } else {
+          const preview = toolResult.output.length > 200
+            ? toolResult.output.slice(0, 200) + '...'
+            : toolResult.output;
+          console.log(c.success(`  ✓ ${toolCall.name}: `) + c.muted(preview.replace(/\n/g, ' ')));
+        }
       } else {
         console.log(c.error(`  ✗ ${toolCall.name}: ${toolResult.error}`));
+        // Storm breaker: check for death-spiral loops
+        if (stormBreaker.record(toolCall.name, toolResult.error)) {
+          console.log(c.error(`\n  ⚠ Storm breaker: same tool/error combination repeated ${STORM_BREAK_THRESHOLD}+ times. Stopping loop.`));
+          conversation.messages.push({
+            role: 'assistant',
+            content: `[System: Tool call loop detected — same error "${toolResult.error?.slice(0, 80)}" repeating. Please try a different approach.]`,
+            timestamp: Date.now(),
+          });
+          saveSession(conversation);
+          return;
+        }
       }
 
       // Add tool result to conversation
@@ -438,29 +641,56 @@ program
 
       // Tool call loop for single-question mode
       for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-        const spin = spinner('Thinking...');
         let result: Awaited<ReturnType<typeof provider.generate>>;
-        try {
-          result = await provider.generate(messages, systemPrompt, toolDefs.length > 0 ? toolDefs : undefined);
-          spin.stop();
-          if (result.content) console.log(renderMarkdown(result.content));
-        } catch (err) {
-          spin.stop();
-          console.error(chalk.red(`Error: ${String(err)}`));
-          process.exit(1);
+
+        if (config.stream) {
+          // Streaming mode
+          const writer = new StreamWriter();
+          const spin = spinner('Thinking...');
+          try {
+            result = await provider.stream(
+              messages,
+              (chunk) => {
+                spin.stop();
+                if (chunk.thinking && config.thinkingEnabled) {
+                  process.stdout.write(getColors().thinking(chunk.thinking));
+                }
+                if (chunk.content) writer.write(chunk.content);
+              },
+              systemPrompt,
+              toolDefs.length > 0 ? toolDefs : undefined,
+            );
+            writer.end();
+          } catch (err) {
+            writer.end();
+            console.error(chalk.red(`Error: ${String(err)}`));
+            process.exit(1);
+          }
+        } else {
+          // Non-streaming mode
+          const spin = spinner('Thinking...');
+          try {
+            result = await provider.generate(messages, systemPrompt, toolDefs.length > 0 ? toolDefs : undefined);
+            spin.stop();
+            if (result.content) console.log(renderMarkdown(result.content));
+          } catch (err) {
+            spin.stop();
+            console.error(chalk.red(`Error: ${String(err)}`));
+            process.exit(1);
+          }
         }
 
-        if (!result.toolCalls || result.toolCalls.length === 0) {
-          if (config.showTokenCounts && result.usage.totalTokens > 0) {
+        if (!result!.toolCalls || result!.toolCalls.length === 0) {
+          if (config.showTokenCounts && result!.usage.totalTokens > 0) {
             const c = getColors();
-            console.log(c.muted(`\n  Tokens: ${result.usage.totalTokens} total`));
+            console.log(c.muted(`\n  Tokens: ${result!.usage.totalTokens} total`));
           }
           process.exit(0);
         }
 
         // Execute tool calls
-        messages.push({ role: 'assistant', content: result.content, timestamp: Date.now(), toolCalls: result.toolCalls });
-        for (const toolCall of result.toolCalls) {
+        messages.push({ role: 'assistant', content: result!.content, timestamp: Date.now(), toolCalls: result!.toolCalls });
+        for (const toolCall of result!.toolCalls) {
           const toolResult = await toolRegistry.execute(toolCall.name, toolCall.arguments, config.permissions, config.defaultPermission);
           messages.push({ role: 'tool', content: toolResult.success ? toolResult.output : `Error: ${toolResult.error}`, timestamp: Date.now(), toolCallId: toolCall.id, toolName: toolCall.name });
         }
