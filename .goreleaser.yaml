@@ -39,5 +39,5 @@ changelog:
 release:
   github:
     owner: WuSuBuDuoMing
-    name: neocode
+    name: aidev
   prerelease: auto
