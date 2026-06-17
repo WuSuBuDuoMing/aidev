@@ -8,15 +8,14 @@ on:
 
 jobs:
   lint:
-    name: Lint & Type Check
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-go@v5
         with:
-          node-version: 20
-      - run: npm install
-      - run: npx tsc --noEmit
+          go-version: '1.26'
+      - run: go vet ./...
 
   test:
     name: Test
@@ -24,23 +23,50 @@ jobs:
     needs: lint
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-go@v5
         with:
-          node-version: 20
-      - run: npm install
-      - run: npm test
+          go-version: '1.26'
+      - run: go test -race ./...
 
   build:
-    name: Build
+    name: Build (${{ matrix.os }}/${{ matrix.arch }})
     runs-on: ubuntu-latest
     needs: test
     strategy:
       matrix:
-        node-version: [18, 20]
+        os: [darwin, linux, windows]
+        arch: [amd64, arm64]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-go@v5
         with:
-          node-version: ${{ matrix.node-version }}
-      - run: npm install
-      - run: npm run build
+          go-version: '1.26'
+      - name: Build
+        env:
+          CGO_ENABLED: '0'
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+        run: |
+          EXT=""
+          if [ "$GOOS" = "windows" ]; then EXT=".exe"; fi
+          go build -ldflags "-s -w" -o neocode${EXT} ./cmd/neocode
+      - uses: actions/upload-artifact@v4
+        with:
+          name: neocode-${{ matrix.os }}-${{ matrix.arch }}
+          path: neocode*
+
+  smoke-test:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: neocode-linux-amd64
+      - name: Test version
+        run: |
+          chmod +x neocode
+          ./neocode version
+          ./neocode providers
+          ./neocode status
