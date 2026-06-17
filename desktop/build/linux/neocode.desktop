@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=NeoCode
+Comment=AI coding agent for Chinese and international models
+Exec=/usr/bin/neocode
+Icon=neocode
+Type=Application
+Categories=Development;Utility;
+Terminal=true

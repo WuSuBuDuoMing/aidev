@@ -1,64 +1,51 @@
-# Dependencies
+# Binaries
+/neocode
+/neocode.exe
+dist/
+
+# Go
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Node
 node_modules/
 
-# Build output
-dist/
-build/
-out/
-
-# Environment files
-.env
-.env.local
-.env.*.local
-
-# IDE / Editor
-.vscode/
+# IDE
 .idea/
+.vscode/
 *.swp
 *.swo
 *~
+
+# OS
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Desktop frontend
+desktop/frontend/dist/
+
+# Database
+*.db
+*.db-wal
+*.db-shm
+
+# Legacy TypeScript
+legacy/dist/
 
 # Logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
 
 # Test coverage
 coverage/
 *.lcov
 
-# OS files
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# Temporary files
+# Temp
 tmp/
 temp/
 *.tmp
-*.temp
-
-# TypeScript cache
-*.tsbuildinfo
-
-# ESLint cache
-.eslintcache
-
-# Prettier cache
-.prettiercache
-
-# Optional npm cache
-.npm
-
-# Optional REPL history
-.node_repl_history
-
-# aidev local overrides (keep project config committed if desired)
-# .aidev/config.json
-.aidev/sessions/
-.aidev/cache/
-.aidev/history.db

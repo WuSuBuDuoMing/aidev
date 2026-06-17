@@ -1,370 +1,75 @@
-<div align="center">
+# NeoCode (aidev v2)
 
-# aidev
+**AI 编码代理 — 为国产模型和国际模型深度优化。**
 
-### AI-Powered Terminal Coding Assistant
+基于 Go 语言重写的原生 AI 编码代理（v2.0.0），零依赖单二进制分发。
 
-[![npm version](https://img.shields.io/npm/v/aidev-cli.svg?style=flat-square&color=blue)](https://www.npmjs.com/package/aidev-cli)
-[![license](https://img.shields.io/npm/l/aidev-cli.svg?style=flat-square&color=green)](https://github.com/WuSuBuDuoMing/aidev/blob/main/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/WuSuBuDuoMing/aidev?style=flat-square&color=yellow)](https://github.com/WuSuBuDuoMing/aidev/stargazers)
-[![GitHub contributors](https://img.shields.io/github/contributors/WuSuBuDuoMing/aidev?style=flat-square&color=purple)](https://github.com/WuSuBuDuoMing/aidev/graphs/contributors)
-[![GitHub issues](https://img.shields.io/github/issues/WuSuBuDuoMing/aidev?style=flat-square&color=red)](https://github.com/WuSuBuDuoMing/aidev/issues)
-[![CI](https://img.shields.io/github/actions/workflow/status/WuSuBuDuoMing/aidev/ci.yml?style=flat-square&label=CI)](https://github.com/WuSuBuDuoMing/aidev/actions)
+[English](README.en.md) | 中文
 
-A superior AI terminal coding assistant that brings the power of multiple AI providers directly into your terminal. Supports **Claude**, **GPT**, **DeepSeek**, **Gemini**, **Ollama**, and any **OpenAI-compatible API** -- all from a single, unified CLI.
-
-[English](./README.md) | [简体中文](./README.zh-CN.md)
-
-</div>
-
----
-
-## Why aidev?
-
-aidev is not just another AI CLI wrapper. It is a fully-featured, extensible coding assistant designed for professional developers who live in the terminal.
-
-### Feature Comparison
-
-| Feature | aidev | deepcode-cli | GitHub Copilot CLI | cursor-cli |
-|---|:---:|:---:|:---:|:---:|
-| Multi-provider support | **5+** | 1 | 1 | 1 |
-| Local model support (Ollama) | **Yes** | No | No | No |
-| OpenAI-compatible API | **Yes** | Limited | No | No |
-| Streaming with syntax highlighting | **Yes** | Yes | No | Yes |
-| Skills system | **Yes** | No | No | No |
-| Plugin architecture | **Yes** | No | No | Limited |
-| Code review / diff preview | **Yes** | Limited | No | Yes |
-| Git integration | **Full** | Basic | Basic | Basic |
-| Custom themes | **Yes** | No | No | No |
-| Permission control | **Yes** | No | No | No |
-| Conversation history | **Yes** | Yes | No | Yes |
-| Multi-level configuration | **Yes** | Basic | Basic | Basic |
-| Context-aware coding | **Yes** | Yes | Limited | Yes |
-
----
-
-## Features
-
-- **Multi-Provider Support** -- Seamlessly switch between Claude, GPT, DeepSeek, Gemini, Ollama, and any OpenAI-compatible API. Use the best model for each task.
-- **Context-Aware Coding** -- Automatically indexes your project and understands file relationships, imports, and project structure.
-- **Streaming with Syntax Highlighting** -- Real-time streaming responses with beautiful syntax highlighting for all major languages.
-- **Skills System** -- Create, share, and compose reusable skill templates to automate repetitive coding patterns.
-- **Plugin Architecture** -- Extend aidev with custom plugins that add new commands, providers, or integrations.
-- **Git Integration** -- Stage, commit, create branches, view diffs, and generate conventional commit messages -- all from within aidev.
-- **Code Review** -- AI-powered code review with inline comments and actionable suggestions.
-- **Diff Preview** -- Review AI-generated changes with a clear, color-coded diff before applying them.
-- **Custom Themes** -- Personalize your terminal experience with built-in and custom color themes.
-- **Permission Control** -- Fine-grained control over what aidev can read, write, and execute on your system.
-- **Conversation History** -- Persistent conversation sessions with full history, search, and context restoration.
-- **Multi-Level Configuration** -- Configure aidev at the environment, project, and user level with clear precedence rules.
-
----
-
-## Quick Start
-
-### Installation
+## 快速开始
 
 ```bash
-# Install globally via npm
-npm install -g aidev-cli
+# npm 安装（推荐）
+npm i -g @neocode/cli
 
-# Or use yarn
-yarn global add aidev-cli
+# Shell 安装
+curl -fsSL https://get.neocode.dev | bash
 
-# Or use pnpm
-pnpm add -g aidev-cli
+# 配置 API Key
+export DEEPSEEK_API_KEY=sk-xxx
+# 或
+export ANTHROPIC_API_KEY=sk-ant-xxx
+
+# 运行
+neocode
 ```
 
-### First Run
+## 功能特性
 
-```bash
-# Launch aidev
-aidev
+- **62 个内置供应商预设** — DeepSeek、Claude、GPT、Gemini、MiMo、Qwen、GLM、Kimi + 20+ 中转服务
+- **ccSwitch 兼容** — 读取所有标准 ccSwitch 环境变量
+- **1M 上下文支持** — Gemini 2.5 Pro/Flash 动态压缩
+- **工具调用** — 文件读写编辑、Shell 命令、Git、搜索、Web 获取
+- **MCP 插件协议** — stdio/HTTP/SSE 三种传输
+- **4 种权限模式** — Ask / Auto / Plan / Edit
+- **5 级思考程度** — Low → Medium → High → XHigh → Ultracode + Workflows
+- **实时用量** — Token 计数、费用估算、余额查询
+- **自动更新** — `neocode upgrade` 一键升级
+- **桌面端** — Windows (.exe)、macOS (.dmg)、Linux (.deb)
 
-# Set up your preferred provider
-aidev config set provider claude
-aidev config set apiKey "your-api-key"
+## 支持的模型
 
-# Start coding
-aidev "Help me refactor this function to use async/await"
-```
+| Provider | 模型 | 上下文 |
+|----------|------|--------|
+| DeepSeek | v4, v4-pro, v4-flash | 128K |
+| Claude | Fable 5, Opus 4.8, Sonnet 4.6, Haiku 4.5 | 200K |
+| OpenAI | GPT-5.5, GPT-4o, o3, o3-mini | 200K |
+| Gemini | 2.5 Pro/Flash, 3.5 Flash | **1M** |
+| MiMo | v2.5, v2.5-pro | 128K |
+| GLM | GLM-5.1 | 128K |
+| Kimi | K2.7-code | 128K |
 
-### One-liner Usage
-
-```bash
-# Ask a quick question
-aidev "What does this regex match? /^[a-z]+-\d{3}$/"
-
-# Pipe input
-cat src/app.ts | aidev "Review this code for potential bugs"
-
-# Generate code
-aidev "Create a TypeScript function that parses CSV files with proper error handling"
-```
-
----
-
-## Configuration
-
-aidev uses a **three-level configuration system** with clear precedence:
+## 架构
 
 ```
-Environment Variables  >  Project Config (.aidev/config.json)  >  User Config (~/.aidev/config.json)
+aidev/
+├── cmd/neocode/           # CLI 入口
+├── internal/              # 核心内核
+│   ├── agent/             # Agent 循环 + Storm Breaker + 子代理
+│   ├── config/            # TOML 配置 + ccSwitch + 模型注册表
+│   ├── provider/          # 3个 Provider + SSE流 + 重试
+│   ├── tool/              # 10个内置工具 + MCP 客户端
+│   ├── permission/        # 权限策略 (4种模式)
+│   ├── session/           # SQLite 会话持久化
+│   ├── skill/             # 技能系统
+│   └── cli/               # 自升级
+├── desktop/               # Wails v2 桌面端
+├── npm/                   # npm 分发
+├── scripts/               # Shell 安装器 + Homebrew
+├── legacy/                # TypeScript v1 代码（存档）
+└── docs/                  # 设计文档
 ```
-
-### Quick Configuration
-
-```bash
-# Set provider
-aidev config set provider claude
-
-# Set API key (stored securely in user config)
-aidev config set apiKey "sk-..."
-
-# Set model
-aidev config set model claude-sonnet-4-20250514
-
-# Set output theme
-aidev config set theme monokai
-
-# View all settings
-aidev config list
-
-# Reset to defaults
-aidev config reset
-```
-
-See [docs/configuration.md](./docs/configuration.md) for the full configuration reference.
-
----
-
-## Supported Providers
-
-| Provider | Default Model | Streaming | Function Calling | Local |
-|---|---|:---:|:---:|:---:|
-| **Claude** (Anthropic) | `claude-sonnet-4-20250514` | Yes | Yes | No |
-| **GPT** (OpenAI) | `gpt-4o` | Yes | Yes | No |
-| **DeepSeek** | `deepseek-chat` | Yes | Yes | No |
-| **Gemini** (Google) | `gemini-2.5-pro` | Yes | Yes | No |
-| **Ollama** | `llama3.1` | Yes | Varies | Yes |
-| **OpenAI-compatible** | `default` | Yes | Varies | Varies |
-
-See [docs/providers.md](./docs/providers.md) for detailed setup instructions for each provider.
-
----
-
-## Slash Commands
-
-aidev supports a rich set of slash commands for quick actions:
-
-| Command | Description |
-|---|---|
-| `/help` | Show all available commands and shortcuts |
-| `/clear` | Clear the current conversation |
-| `/compact` | Compact conversation to save context window |
-| `/config` | View or modify configuration |
-| `/context` | Manage project context files |
-| `/cost` | Show token usage and cost estimates for the session |
-| `/diff` | Show a diff of the last AI-generated changes |
-| `/doctor` | Run diagnostics to check aidev health |
-| `/edit` | Edit a file with AI assistance |
-| `/explain` | Explain selected code or a file |
-| `/export` | Export conversation history to markdown |
-| `/fix` | Fix errors in the current file or selection |
-| `/git` | Git operations (commit, branch, status, diff) |
-| `/init` | Initialize aidev configuration for the current project |
-| `/login` | Authenticate with an AI provider |
-| `/logout` | Remove stored credentials |
-| `/model` | Switch the active AI model |
-| `/plugins` | List, install, or manage plugins |
-| `/review` | AI-powered code review of staged changes |
-| `/search` | Search across the project with AI assistance |
-| `/skills` | List, run, or manage skills |
-| `/test` | Generate or run tests for the current file |
-| `/theme` | Change the output theme |
-
----
-
-## Keyboard Shortcuts
-
-| Shortcut | Action |
-|---|---|
-| `Ctrl+C` | Cancel current generation |
-| `Ctrl+D` | Exit aidev |
-| `Ctrl+L` | Clear screen |
-| `Ctrl+K` | Clear current input line |
-| `Ctrl+R` | Search conversation history |
-| `Up / Down` | Navigate input history |
-| `Tab` | Autocomplete commands and file paths |
-| `Escape` | Cancel current operation |
-| `Ctrl+Enter` | Submit multi-line input |
-
----
-
-## Skills System
-
-Skills are reusable prompt templates that encode expert knowledge for common tasks.
-
-### Built-in Skills
-
-- **code-review** -- Comprehensive code review with severity ratings
-- **refactor** -- Suggest and apply refactoring improvements
-- **test-gen** -- Generate unit tests with full coverage analysis
-- **doc-gen** -- Generate documentation for functions and modules
-- **explain** -- Explain code with varying levels of detail
-- **optimize** -- Identify and fix performance bottlenecks
-
-### Using Skills
-
-```bash
-# List available skills
-/skills list
-
-# Run a skill
-/skills run code-review
-
-# Run a skill on specific files
-/skills run test-gen src/utils/parser.ts
-```
-
-### Creating Custom Skills
-
-Create a `.aidev/skills/my-skill.md` file:
-
-```markdown
----
-name: my-skill
-description: A custom skill for my workflow
-version: 1.0.0
-input:
-  - name: file
-    type: string
-    description: Target file path
-    required: true
----
-
-You are an expert TypeScript developer.
-
-Analyze the file at {{file}} and:
-
-1. Check for type safety issues
-2. Identify potential runtime errors
-3. Suggest improvements for readability
-```
-
-See [docs/skills.md](./docs/skills.md) for full documentation.
-
----
-
-## Plugin System
-
-Extend aidev with plugins that add new capabilities:
-
-```bash
-# Install a plugin
-aidev plugins install aidev-plugin-docker
-
-# List installed plugins
-aidev plugins list
-
-# Create your own plugin
-aidev plugins create my-plugin
-```
-
-See [docs/plugins.md](./docs/plugins.md) for the plugin API and development guide.
-
----
-
-## Architecture
-
-```
-+------------------------------------------------------------------+
-|                          aidev CLI                                |
-+------------------------------------------------------------------+
-|                                                                    |
-|  +-------------+  +-------------+  +-------------+  +----------+ |
-|  |   Commands   |  |  Slash Cmds |  |   Skills    |  |  Config  | |
-|  |  (Commander) |  |  /help etc  |  |  (.md files) |  |  (3-lvl) | |
-|  +------+------+  +------+------+  +------+------+  +----+-----+ |
-|         |                |                |              |        |
-|  +------v----------------v----------------v--------------v-----+  |
-|  |                     Core Engine                              |  |
-|  |  +------------+  +------------+  +-----------+  +---------+ |  |
-|  |  |  Context   |  |  Session   |  |  History   |  |  Git    | |  |
-|  |  |  Manager   |  |  Manager   |  |  Manager   |  |  Tools  | |  |
-|  |  +------+-----+  +-----+------+  +-----+-----+  +----+----+ |  |
-|  +---------|--------------|--------------|--------------|-------+  |
-|            |              |              |              |           |
-|  +---------v--------------v--------------v--------------v-------+  |
-|  |                     AI Abstraction Layer                     |  |
-|  |  +--------+  +-----+  +---------+  +-------+  +----------+ |  |
-|  |  | Claude |  | GPT |  | DeepSeek |  | Gemini|  | Ollama   | |  |
-|  |  +--------+  +-----+  +---------+  +-------+  +----------+ |  |
-|  +--------------------------------------------------------------+  |
-|                                                                    |
-|  +--------------------------------------------------------------+  |
-|  |                      Plugin System                            |  |
-|  |  +------------+  +-------------+  +------------------------+ |  |
-|  |  |  Commands   |  |  Providers  |  |  Hooks & Middleware    | |  |
-|  |  +------------+  +-------------+  +------------------------+ |  |
-|  +--------------------------------------------------------------+  |
-|                                                                    |
-|  +--------------------------------------------------------------+  |
-|  |                      UI Layer                                |  |
-|  |  +------------+  +-------------+  +-------------+            |  |
-|  |  |  Streaming  |  |   Syntax    |  |   Themes    |            |  |
-|  |  |  Renderer   |  | Highlighter |  |   Engine    |            |  |
-|  |  +------------+  +-------------+  +-------------+            |  |
-|  +--------------------------------------------------------------+  |
-+------------------------------------------------------------------+
-```
-
----
-
-## Contributing
-
-We welcome contributions of all kinds! Whether it's reporting a bug, suggesting a feature, improving documentation, or submitting code -- every contribution matters.
-
-Please read our [Contributing Guide](./CONTRIBUTING.md) before getting started.
-
-```bash
-# Clone the repository
-git clone https://github.com/WuSuBuDuoMing/aidev.git
-cd aidev
-
-# Install dependencies
-npm install
-
-# Start development mode
-npm run dev
-
-# Run tests
-npm test
-
-# Run linting
-npm run check
-```
-
----
-
-## Changelog
-
-See [CHANGELOG.md](./CHANGELOG.md) for a detailed history of changes.
-
----
 
 ## License
 
-aidev is released under the [MIT License](./LICENSE).
-
-Copyright (c) 2024-2026 WuSuBuDuoMing
-
----
-
-<div align="center">
-
-**Built with care by developers, for developers.**
-
-[Report a Bug](https://github.com/WuSuBuDuoMing/aidev/issues/new?template=bug_report.md) | [Request a Feature](https://github.com/WuSuBuDuoMing/aidev/issues/new?template=feature_request.md) | [Join the Discussion](https://github.com/WuSuBuDuoMing/aidev/discussions)
-
-</div>
+MIT

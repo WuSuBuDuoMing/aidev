@@ -1,0 +1,64 @@
+# NeoCode Configuration
+# Docs: https://neocode.dev/docs/configuration
+
+# Default provider and model
+default_provider = "deepseek"
+default_model = "deepseek-v4"
+
+# API key (prefer environment variables: NEOCODE_API_KEY, DEEPSEEK_API_KEY, etc.)
+# api_key = ""
+
+# Base URL override (for proxies or custom endpoints)
+# base_url = ""
+
+# Sampling temperature (0.0 - 2.0)
+temperature = 0.2
+
+# Maximum output tokens
+max_tokens = 4096
+
+# UI theme: dark, light, monokai, dracula
+theme = "dark"
+
+# Enable streaming responses
+stream = true
+
+# Enable thinking/reasoning mode
+thinking_enabled = false
+
+# Language: zh-CN, en
+language = "zh-CN"
+
+# Permission mode: ask, auto, plan, edit
+permission_mode = "ask"
+
+# Effort level: low, medium, high, xhigh, ultracode
+effort = "medium"
+
+# Show token counts and cost after each response
+show_token_counts = true
+
+# Sandbox settings
+[sandbox]
+write_roids = ["."]
+
+# Auto-update settings
+[update]
+auto_check = true
+channel = "stable"
+
+# Provider definitions (override built-in presets)
+# [[providers]]
+# name = "my-proxy"
+# kind = "openai"
+# base_url = "https://my.api.com/v1"
+# api_key_env = "MY_API_KEY"
+# model = "deepseek-v4"
+
+# Permission rules
+# [[permissions]]
+# tool_name = "runCommand"
+# mode = "ask"
+# [[permissions]]
+# tool_name = "readFile"
+# mode = "allow"

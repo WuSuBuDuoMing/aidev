@@ -1,0 +1,15 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "NeoCode",
+  "outputfilename": "NeoCode",
+  "frontend:dir": "frontend",
+  "frontend:install": "npx pnpm install",
+  "frontend:build": "npx pnpm run build",
+  "frontend:dev:watcher": "npx pnpm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "wailsjsdir": "frontend/src",
+  "author": {
+    "name": "NeoCode",
+    "email": "neocode@example.com"
+  }
+}

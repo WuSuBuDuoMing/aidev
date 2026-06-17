@@ -1,155 +1,43 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to NeoCode will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [1.5.0] - 2026-06-16
-
-### Added
-- Code of Conduct (CODE_OF_CONDUCT.md) based on Contributor Covenant v2.1
-- GitHub Sponsors funding configuration (FUNDING.yml)
-- CODEOWNERS file for code review assignments
-- Enhanced Issue and PR templates
-
-## [1.3.0] - 2026-06-14
-
-### Added
-- Security policy (SECURITY.md)
-- Documentation enhancements
-- Open-source best practices
-
-## [1.0.0] - 2026-06-09
+## [2.0.0] - 2026-06-16
 
 ### Added
 
-#### Core
-- Multi-provider AI support: Claude, GPT, DeepSeek, Gemini, Ollama, and any OpenAI-compatible API
-- Streaming response rendering with real-time syntax highlighting
-- Three-level configuration system (environment variables > project > user)
-- Persistent conversation history with full-text search
-- Context-aware project indexing with automatic file relationship detection
-
-#### Commands
-- Full Commander.js-powered CLI with `aidev` as the entry point
-- One-liner usage: `aidev "your prompt"` for quick queries
-- Pipe support: `cat file.ts | aidev "explain this"`
-- Interactive REPL mode with tab completion
-
-#### Slash Commands
-- `/help` -- Show all available commands and shortcuts
-- `/clear` -- Clear the current conversation
-- `/compact` -- Compact conversation to save context window
-- `/config` -- View or modify configuration
-- `/context` -- Manage project context files
-- `/cost` -- Show token usage and cost estimates
-- `/diff` -- Show a diff of the last AI-generated changes
-- `/doctor` -- Run diagnostics to check aidev health
-- `/edit` -- Edit a file with AI assistance
-- `/explain` -- Explain selected code or a file
-- `/export` -- Export conversation history to markdown
-- `/fix` -- Fix errors in the current file or selection
-- `/git` -- Git operations (commit, branch, status, diff)
-- `/init` -- Initialize aidev configuration for the current project
-- `/login` -- Authenticate with an AI provider
-- `/logout` -- Remove stored credentials
-- `/model` -- Switch the active AI model
-- `/plugins` -- List, install, or manage plugins
-- `/review` -- AI-powered code review of staged changes
-- `/search` -- Search across the project with AI assistance
-- `/skills` -- List, run, or manage skills
-- `/test` -- Generate or run tests for the current file
-- `/theme` -- Change the output theme
-
-#### Skills System
-- Skill definition using Markdown frontmatter format
-- Built-in skills: code-review, refactor, test-gen, doc-gen, explain, optimize
-- Custom skill creation with template variables and input parameters
-- Skill discovery from project and user directories
-
-#### Plugin Architecture
-- Plugin API with hooks for commands, providers, and middleware
-- Plugin lifecycle management (install, enable, disable, uninstall)
-- Plugin scaffolding with `aidev plugins create`
-- Plugin marketplace discovery
-
-#### Git Integration
-- `git status`, `git diff`, `git log` within the REPL
-- AI-generated conventional commit messages
-- Branch creation and management
-- Staged change review with `/review`
-
-#### Code Review
-- AI-powered code review with severity ratings (critical, warning, suggestion)
-- Inline comments with specific line references
-- Summary of findings with actionable recommendations
-
-#### UI & Themes
-- Streaming markdown rendering in the terminal
-- Syntax highlighting for all major languages via cli-highlight
-- Multiple built-in themes (default, monokai, dracula, solarized, nord)
-- Custom theme support via JSON configuration
-- Spinner animations for long-running operations
-
-#### Configuration
-- User-level configuration at `~/.aidev/config.json`
-- Project-level configuration at `.aidev/config.json`
-- Environment variable overrides for CI/CD integration
-- `aidev config set/get/list/reset` commands
-- API key secure storage
-
-#### Provider Support
-- **Claude**: claude-sonnet-4-20250514, claude-3-5-sonnet, claude-3-opus, claude-3-haiku
-- **GPT**: gpt-4o, gpt-4o-mini, gpt-4-turbo, gpt-3.5-turbo
-- **DeepSeek**: deepseek-chat, deepseek-coder
-- **Gemini**: gemini-2.5-pro, gemini-2.5-flash, gemini-2.0-flash
-- **Ollama**: Any locally running model (llama3.1, codellama, mistral, etc.)
-- **OpenAI-compatible**: Any API that implements the OpenAI chat completions interface
-
-#### Developer Experience
-- TypeScript-first codebase with strict type checking
-- Vitest test framework with comprehensive test coverage
-- ESLint + Prettier for code formatting
-- GitHub Actions CI pipeline (lint, build, test) on Node.js 18/20
-- Comprehensive documentation: configuration, skills, plugins, providers
+- Complete rewrite from TypeScript to Go
+- Single static binary (CGO_ENABLED=0), zero dependencies
+- 33 model registry (Claude Fable 5, GPT-5.5, DeepSeek V4, Gemini 2.5/3.5, MiMo v2.5, GLM-5.1, Kimi K2.7)
+- 10 built-in tools (bash, read, write, edit, glob, grep, git status/diff/commit, ls)
+- MCP client (stdio/HTTP/SSE transports, .mcp.json auto-discovery)
+- SQLite session persistence (WAL mode)
+- Skills system (YAML frontmatter + markdown body)
+- 4 permission modes (ask, auto, plan, edit)
+- 5 effort levels (low, medium, high, xhigh, ultracode)
+- Storm Breaker (death-spiral loop detection by error signature)
+- Parallel read-only tool dispatch
+- Context compaction (1M-aware dynamic thresholds)
+- Tool result pruning (re-derivable outputs replaced with placeholders)
+- Token estimation with real-usage calibration
+- Real-time usage/balance display
+- ccSwitch environment variable compatibility (62 provider presets)
+- Self-upgrade from GitHub Releases
+- 12 slash commands (/help, /status, /providers, /model, /provider, /effort, /mode, /history, /resume, /skills, /new, /upgrade)
+- Wails v2 desktop app (React + TailwindCSS frontend)
+- Cross-platform distribution (6 CLI targets + 3 desktop platforms)
+- npm package (@neocode/cli with platform-specific binaries)
+- Shell installer (curl -fsSL https://get.neocode.dev | bash)
+- Homebrew formula
+- GitHub Actions CI/CD (lint, test, build matrix, release)
+- Bilingual documentation (English + Chinese)
+- API key encrypted local storage (AES-256-GCM)
+- Path sandboxing for write operations
+- SSRF protection for web fetch
 
 ### Security
-- API keys stored in user config, never in project configuration
-- Permission control system for file read/write/execute operations
-- No telemetry or data collection
 
-## [1.2.0] - 2026-06-14
-
-### Changed
-- Local optimization and performance improvements
-- TypeScript fixes and type safety improvements
-- CI workflow improvements
-- Documentation updates
-
-## [1.1.0] - 2026-06-11
-
-### Added
-
-#### Test Coverage
-- Added 89 unit tests across 6 test files covering all core modules
-- `types.test.ts` — AIProviderEnum, COST_TABLE, estimateCost (12 tests)
-- `config.test.ts` — validateConfig, loadConfig with env overrides, path helpers (16 tests)
-- `provider.test.ts` — createProvider factory, defaultBaseUrl, defaultModel (16 tests)
-- `tools.test.ts` — checkPermission, ToolRegistry, createBuiltinRegistry (18 tests)
-- `skills.test.ts` — parseSkillContent, resolveSkill (12 tests)
-- `prompts.test.ts` — all prompt templates, getSpecializedPrompts (15 tests)
-- Added vitest.config.ts with proper configuration
-
-### Fixed
-
-- Skills parser now correctly handles Windows-style line endings (`\r\n`) in frontmatter files
-- Config system silently ignores invalid `AIDEV_PROVIDER` env values instead of throwing
-
-### Changed
-
-- Version bump to 1.1.0
-
-[1.2.0]: https://github.com/WuSuBuDuoMing/aidev/releases/tag/v1.2.0
-[1.1.0]: https://github.com/WuSuBuDuoMing/aidev/releases/tag/v1.1.0
-[1.0.0]: https://github.com/WuSuBuDuoMing/aidev/releases/tag/v1.0.0
+- API keys never stored in config files, encrypted in keystore.enc
+- Write operations sandboxed to project directory
+- Shell commands use argument arrays (no injection)
+- Explicit storage path disclosure on first use
