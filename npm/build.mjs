@@ -8,7 +8,7 @@ import { execSync } from 'child_process';
 import { mkdirSync, writeFileSync, existsSync, copyFileSync } from 'fs';
 import { join } from 'path';
 
-const VERSION = process.env.VERSION || '2.0.0';
+const VERSION = process.env.VERSION || '2.3.0';
 const ROOT = process.cwd();
 
 const targets = [

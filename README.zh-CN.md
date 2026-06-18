@@ -1,62 +1,59 @@
 <div align="center">
 
-# aidev
+# NeoCode
 
-### AI 驱动的终端编程助手
+**AI 编码代理 -- 为国产模型和国际模型深度优化。**
 
-[![npm version](https://img.shields.io/npm/v/aidev-cli.svg?style=flat-square&color=blue)](https://www.npmjs.com/package/aidev-cli)
-[![license](https://img.shields.io/npm/l/aidev-cli.svg?style=flat-square&color=green)](https://github.com/WuSuBuDuoMing/aidev/blob/main/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/WuSuBuDuoMing/aidev?style=flat-square&color=yellow)](https://github.com/WuSuBuDuoMing/aidev/stargazers)
-[![GitHub contributors](https://img.shields.io/github/contributors/WuSuBuDuoMing/aidev?style=flat-square&color=purple)](https://github.com/WuSuBuDuoMing/aidev/graphs/contributors)
-[![GitHub issues](https://img.shields.io/github/issues/WuSuBuDuoMing/aidev?style=flat-square&color=red)](https://github.com/WuSuBuDuoMing/aidev/issues)
+基于 Go 语言重写的原生 AI 编码代理，零依赖单二进制分发。
+深度优化 DeepSeek、MiMo、Qwen、GLM、Kimi，完整支持 Claude、GPT、Gemini。
+
 [![CI](https://img.shields.io/github/actions/workflow/status/WuSuBuDuoMing/aidev/ci.yml?style=flat-square&label=CI)](https://github.com/WuSuBuDuoMing/aidev/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](./LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/WuSuBuDuoMing/aidev?style=flat-square&color=yellow)](https://github.com/WuSuBuDuoMing/aidev/stargazers)
+[![npm](https://img.shields.io/npm/v/@neocode/cli?style=flat-square&color=red)](https://www.npmjs.com/package/@neocode/cli)
 
-一款卓越的 AI 终端编程助手，将多种 AI 模型的能力直接带入您的终端。支持 **Claude**、**GPT**、**DeepSeek**、**Gemini**、**Ollama** 以及任何 **OpenAI 兼容 API** -- 一切尽在单一命令行工具中。
-
-[English](./README.md) | [简体中文](./README.zh-CN.md)
+[English](README.md) | 简体中文
 
 </div>
 
 ---
 
-## 为什么选择 aidev？
+## 目录
 
-aidev 不仅仅是又一个 AI 命令行封装工具。它是一个功能完善、可扩展的编程助手，专为生活在终端中的专业开发者设计。
-
-### 功能对比
-
-| 功能特性 | aidev | deepcode-cli | GitHub Copilot CLI | cursor-cli |
-|---|:---:|:---:|:---:|:---:|
-| 多模型提供商支持 | **5+** | 1 | 1 | 1 |
-| 本地模型支持 (Ollama) | **是** | 否 | 否 | 否 |
-| OpenAI 兼容 API | **是** | 有限 | 否 | 否 |
-| 流式输出 + 语法高亮 | **是** | 是 | 否 | 是 |
-| 技能系统 | **是** | 否 | 否 | 否 |
-| 插件架构 | **是** | 否 | 否 | 有限 |
-| 代码审查 / 差异预览 | **是** | 有限 | 否 | 是 |
-| Git 集成 | **完整** | 基础 | 基础 | 基础 |
-| 自定义主题 | **是** | 否 | 否 | 否 |
-| 权限控制 | **是** | 否 | 否 | 否 |
-| 对话历史 | **是** | 是 | 否 | 是 |
-| 多级配置 | **是** | 基础 | 基础 | 基础 |
-| 上下文感知编程 | **是** | 是 | 有限 | 是 |
+- [功能特性](#功能特性)
+- [快速开始](#快速开始)
+- [支持的模型](#支持的模型)
+- [CLI 命令](#cli-命令)
+- [配置系统](#配置系统)
+- [MCP 插件](#mcp-插件)
+- [架构](#架构)
+- [桌面应用](#桌面应用)
+- [安全特性](#安全特性)
+- [API 参考](#api-参考)
+- [贡献指南](#贡献指南)
+- [更新日志](#更新日志)
+- [许可证](#许可证)
 
 ---
 
 ## 功能特性
 
-- **多提供商支持** -- 在 Claude、GPT、DeepSeek、Gemini、Ollama 及任何 OpenAI 兼容 API 之间无缝切换，为每个任务选择最优模型。
-- **上下文感知编程** -- 自动索引项目结构，理解文件关系、导入路径和项目组织方式。
-- **流式输出 + 语法高亮** -- 实时流式响应，支持所有主流语言的精美语法高亮。
-- **技能系统** -- 创建、分享和组合可复用的技能模板，自动化重复性编码模式。
-- **插件架构** -- 通过自定义插件扩展 aidev，添加新命令、新提供商或新集成。
-- **Git 集成** -- 在 aidev 中直接暂存、提交、创建分支、查看差异，以及生成规范提交消息。
-- **代码审查** -- AI 驱动的代码审查，提供内联注释和可操作的改进建议。
-- **差异预览** -- 在应用 AI 生成的更改之前，以清晰的彩色差异视图进行审阅。
-- **自定义主题** -- 使用内置和自定义配色方案个性化终端体验。
-- **权限控制** -- 精细控制 aidev 对系统文件的读取、写入和执行权限。
-- **对话历史** -- 持久化对话会话，支持完整历史记录、搜索和上下文恢复。
-- **多级配置** -- 在环境变量、项目和用户三个层级配置 aidev，具有清晰的优先级规则。
+| 功能 | 描述 |
+|------|------|
+| **62 个内置供应商预设** | DeepSeek、Claude、GPT、Gemini、MiMo、Qwen、GLM、Kimi + 20+ 中转服务 |
+| **ccSwitch 兼容** | 读取所有标准 ccSwitch 环境变量，无缝迁移 |
+| **1M 上下文支持** | Gemini 2.5 Pro/Flash 动态上下文压缩 |
+| **工具调用** | 10 个内置工具：文件读写编辑、Shell 命令、Git、搜索、Web 获取 |
+| **MCP 插件协议** | stdio/HTTP/SSE 三种传输，`.mcp.json` 自动发现 |
+| **4 种权限模式** | Ask / Auto / Plan / Edit -- 精细控制工具执行 |
+| **5 级思考程度** | Low 到 Ultracode + Workflows -- 按任务控制推理深度 |
+| **实时用量统计** | 每次响应后显示 Token 计数、费用估算、余额查询 |
+| **子代理系统** | 内置探索、审查、安全、研究子代理 |
+| **会话持久化** | SQLite 存储对话历史，支持全文搜索 |
+| **技能系统** | YAML 前置元数据 + Markdown 正文，项目级技能覆盖全局技能 |
+| **自动更新** | `neocode upgrade` 一键升级，SHA256 校验 |
+| **桌面应用** | Windows (.exe)、macOS (.dmg)、Linux (.deb)，基于 Wails v2 |
+| **Storm Breaker** | 死循环检测，防止工具调用失控 |
 
 ---
 
@@ -65,297 +62,269 @@ aidev 不仅仅是又一个 AI 命令行封装工具。它是一个功能完善�
 ### 安装
 
 ```bash
-# 通过 npm 全局安装
-npm install -g aidev-cli
+# npm 安装（推荐）
+npm i -g @neocode/cli
 
-# 或使用 yarn
-yarn global add aidev-cli
+# Homebrew（macOS / Linux）
+brew install neocode/neocode/neocode
 
-# 或使用 pnpm
-pnpm add -g aidev-cli
+# Shell 安装脚本
+curl -fsSL https://get.neocode.dev | bash
+
+# 从源码安装
+go install github.com/WuSuBuDuoMing/aidev/cmd/neocode@latest
 ```
 
-### 首次运行
+### 配置 API Key
 
 ```bash
-# 启动 aidev
-aidev
+# DeepSeek（默认）
+export DEEPSEEK_API_KEY=sk-xxx
 
-# 设置首选提供商
-aidev config set provider claude
-aidev config set apiKey "your-api-key"
+# Anthropic Claude
+export ANTHROPIC_API_KEY=sk-ant-xxx
 
-# 开始编程
-aidev "帮我把这个函数重构为 async/await 风格"
+# OpenAI GPT
+export OPENAI_API_KEY=sk-xxx
+
+# Google Gemini
+export GOOGLE_API_KEY=xxx
+
+# 或使用统一 Key
+export NEOCODE_API_KEY=sk-xxx
 ```
 
-### 单行用法
+### 运行
 
 ```bash
-# 快速提问
-aidev "这个正则表达式匹配什么？ /^[a-z]+-\d{3}$/"
+# 交互式聊天
+neocode
 
-# 管道输入
-cat src/app.ts | aidev "审查这段代码中的潜在 bug"
+# 单次提问
+neocode "如何优化这个 Go 函数的性能？"
 
-# 生成代码
-aidev "创建一个 TypeScript 函数，用于解析 CSV 文件并包含完善的错误处理"
+# 查看状态
+neocode status
+
+# 列出供应商
+neocode providers
 ```
 
 ---
 
-## 配置
+## 支持的模型
 
-aidev 采用**三级配置系统**，具有清晰的优先级规则：
+| 供应商 | 模型 | 上下文 | 定价（输入/输出 每百万 Token） |
+|--------|------|--------|-------------------------------|
+| **DeepSeek** | v4, v4-pro, v4-flash | 128K | $0.10/$0.40 ~ $0.55/$2.19 |
+| **Claude** | Fable 5, Opus 4.8, Sonnet 4.6, Haiku 4.5 | 200K | $0.80/$4 ~ $15/$75 |
+| **OpenAI** | GPT-5.5, GPT-5.4-mini, GPT-4o, o3, o3-mini | 128K-200K | $1/$4 ~ $15/$60 |
+| **Gemini** | 2.5 Pro/Flash, 3.5 Flash | **1M** | $0.075/$0.30 ~ $1.25/$10 |
+| **MiMo** | v2.5, v2.5-pro | 128K | 免费 |
+| **GLM** | GLM-5.1 | 128K | -- |
+| **Kimi** | K2.7-code | 128K | -- |
+| **StepFun** | step-3.5-flash-2603 | 128K | -- |
+| **MiniMax** | minimax-m2.7 | 128K | -- |
+| **百度** | qianfan-code-latest | 128K | -- |
+| **火山引擎** | ark-code-latest, doubao-seed-2.0-code | 128K | -- |
+| **百灵** | ling-2.5-1t | 128K | -- |
+| **Ollama** | llama3.1, qwen2.5, deepseek-v3（本地） | 128K | 免费 |
 
-```
-环境变量  >  项目配置 (.aidev/config.json)  >  用户配置 (~/.aidev/config.json)
-```
+---
 
-### 快速配置
+## CLI 命令
+
+### 命令行用法
 
 ```bash
-# 设置提供商
-aidev config set provider claude
-
-# 设置 API 密钥（安全存储在用户配置中）
-aidev config set apiKey "sk-..."
-
-# 设置模型
-aidev config set model claude-sonnet-4-20250514
-
-# 设置输出主题
-aidev config set theme monokai
-
-# 查看所有设置
-aidev config list
-
-# 重置为默认值
-aidev config reset
+neocode                         # 启动交互式聊天
+neocode "问题"                   # 单次提问模式
+neocode status                  # 显示配置和状态
+neocode providers               # 列出可用供应商
+neocode version                 # 显示版本
+neocode upgrade                 # 自动更新到最新版本
 ```
 
-完整的配置参考请参阅 [docs/configuration.md](./docs/configuration.md)。
+### 斜杠命令（交互式）
+
+```
+/help              显示所有命令
+/status            显示当前配置
+/providers         列出可用供应商
+/model <id>        运行时切换模型
+/provider <id>     运行时切换供应商
+/effort <lvl>      设置思考级别
+/mode <mode>       设置权限模式
+/plan <task>       以只读计划模式分析任务
+/agents            列出可用子代理
+/history [n]       列出最近会话
+/resume <id>       恢复历史会话
+/skills            列出可用技能
+/new               开始新对话
+/upgrade           检查更新
+/clear             清屏
+/exit              退出
+```
 
 ---
 
-## 支持的提供商
+## 配置系统
 
-| 提供商 | 默认模型 | 流式输出 | 函数调用 | 本地部署 |
-|---|---|:---:|:---:|:---:|
-| **Claude** (Anthropic) | `claude-sonnet-4-20250514` | 是 | 是 | 否 |
-| **GPT** (OpenAI) | `gpt-4o` | 是 | 是 | 否 |
-| **DeepSeek** | `deepseek-chat` | 是 | 是 | 否 |
-| **Gemini** (Google) | `gemini-2.5-pro` | 是 | 是 | 否 |
-| **Ollama** | `llama3.1` | 是 | 视模型而定 | 是 |
-| **OpenAI 兼容** | `default` | 是 | 视模型而定 | 视情况而定 |
+NeoCode 使用 4 层配置系统，具有清晰的优先级规则：
 
-每个提供商的详细设置说明请参阅 [docs/providers.md](./docs/providers.md)。
+```
+环境变量 > 项目配置 (.neocode/config.toml) > 用户配置 (~/.neocode/config.toml) > 默认值
+```
 
----
-
-## 斜杠命令
-
-aidev 支持丰富的斜杠命令用于快速操作：
-
-| 命令 | 描述 |
-|---|---|
-| `/help` | 显示所有可用命令和快捷键 |
-| `/clear` | 清除当前对话 |
-| `/compact` | 压缩对话以节省上下文窗口 |
-| `/config` | 查看或修改配置 |
-| `/context` | 管理项目上下文文件 |
-| `/cost` | 显示当前会话的 token 用量和费用估算 |
-| `/diff` | 显示 AI 最近生成的更改差异 |
-| `/doctor` | 运行诊断检查 aidev 健康状态 |
-| `/edit` | 使用 AI 辅助编辑文件 |
-| `/explain` | 解释选中的代码或文件 |
-| `/export` | 将对话历史导出为 Markdown |
-| `/fix` | 修复当前文件或选区中的错误 |
-| `/git` | Git 操作（提交、分支、状态、差异） |
-| `/init` | 为当前项目初始化 aidev 配置 |
-| `/login` | 验证 AI 提供商身份 |
-| `/logout` | 删除已存储的凭证 |
-| `/model` | 切换当前 AI 模型 |
-| `/plugins` | 列出、安装或管理插件 |
-| `/review` | 对暂存更改进行 AI 代码审查 |
-| `/search` | 使用 AI 辅助搜索项目内容 |
-| `/skills` | 列出、运行或管理技能 |
-| `/test` | 为当前文件生成或运行测试 |
-| `/theme` | 更改输出主题 |
-
----
-
-## 键盘快捷键
-
-| 快捷键 | 操作 |
-|---|---|
-| `Ctrl+C` | 取消当前生成 |
-| `Ctrl+D` | 退出 aidev |
-| `Ctrl+L` | 清屏 |
-| `Ctrl+K` | 清除当前输入行 |
-| `Ctrl+R` | 搜索对话历史 |
-| `上/下` | 浏览输入历史 |
-| `Tab` | 命令和文件路径自动补全 |
-| `Escape` | 取消当前操作 |
-| `Ctrl+Enter` | 提交多行输入 |
-
----
-
-## 技能系统
-
-技能是可复用的提示模板，封装了常见任务的专家知识。
-
-### 内置技能
-
-- **code-review** -- 带有严重等级评定的全面代码审查
-- **refactor** -- 提出并应用重构改进建议
-- **test-gen** -- 生成带有完整覆盖率分析的单元测试
-- **doc-gen** -- 为函数和模块生成文档
-- **explain** -- 以不同详细程度解释代码
-- **optimize** -- 识别并修复性能瓶颈
-
-### 使用技能
+### 环境变量
 
 ```bash
-# 列出可用技能
-/skills list
-
-# 运行技能
-/skills run code-review
-
-# 对特定文件运行技能
-/skills run test-gen src/utils/parser.ts
+NEOCODE_PROVIDER=deepseek        # 最高优先级
+NEOCODE_MODEL=deepseek-v4
+NEOCODE_API_KEY=sk-xxx
+DEEPSEEK_API_KEY=sk-xxx          # 供应商特定
+ANTHROPIC_API_KEY=sk-ant-xxx
+OPENAI_API_KEY=sk-xxx
+GOOGLE_API_KEY=xxx
 ```
 
-### 创建自定义技能
+### 配置文件 (`~/.neocode/config.toml`)
 
-在 `.aidev/skills/my-skill.md` 文件中创建：
-
-```markdown
----
-name: my-skill
-description: 针对我工作流的自定义技能
-version: 1.0.0
-input:
-  - name: file
-    type: string
-    description: 目标文件路径
-    required: true
----
-
-你是一位资深的 TypeScript 开发者。
-
-分析 {{file}} 处的文件并：
-
-1. 检查类型安全问题
-2. 识别潜在的运行时错误
-3. 提出可读性改进建议
+```toml
+default_provider = "deepseek"
+default_model = "deepseek-v4"
+temperature = 0.2
+max_tokens = 4096
+theme = "dark"
+stream = true
+language = "zh-CN"
+permission_mode = "ask"
+effort = "medium"
+show_token_counts = true
 ```
-
-完整文档请参阅 [docs/skills.md](./docs/skills.md)。
 
 ---
 
-## 插件系统
+## MCP 插件
 
-通过插件扩展 aidev 的功能：
+在项目根目录创建 `.mcp.json` 以自动发现 MCP 服务器：
 
-```bash
-# 安装插件
-aidev plugins install aidev-plugin-docker
-
-# 列出已安装插件
-aidev plugins list
-
-# 创建你自己的插件
-aidev plugins create my-plugin
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path"]
+    }
+  }
+}
 ```
 
-插件 API 和开发指南请参阅 [docs/plugins.md](./docs/plugins.md)。
+NeoCode 启动时自动发现并连接。MCP 工具以 `mcp__<服务器名>__<工具名>` 命名。
 
 ---
 
 ## 架构
 
 ```
-+------------------------------------------------------------------+
-|                          aidev CLI                                |
-+------------------------------------------------------------------+
-|                                                                    |
-|  +-------------+  +-------------+  +-------------+  +----------+ |
-|  |    命令      |  |  斜杠命令   |  |    技能      |  |   配置   | |
-|  |  (Commander) |  |  /help 等   |  |  (.md 文件)  |  |  (三级)  | |
-|  +------+------+  +------+------+  +------+------+  +----+-----+ |
-|         |                |                |              |        |
-|  +------v----------------v----------------v--------------v-----+  |
-|  |                     核心引擎                                 |  |
-|  |  +------------+  +------------+  +-----------+  +---------+ |  |
-|  |  |  上下文     |  |  会话      |  |  历史     |  |  Git    | |  |
-|  |  |  管理器     |  |  管理器    |  |  管理器   |  |  工具   | |  |
-|  |  +------+-----+  +-----+------+  +-----+-----+  +----+----+ |  |
-|  +---------|--------------|--------------|--------------|-------+  |
-|            |              |              |              |           |
-|  +---------v--------------v--------------v--------------v-------+  |
-|  |                     AI 抽象层                                |  |
-|  |  +--------+  +-----+  +---------+  +-------+  +----------+ |  |
-|  |  | Claude |  | GPT |  | DeepSeek|  | Gemini|  | Ollama   | |  |
-|  |  +--------+  +-----+  +---------+  +-------+  +----------+ |  |
-|  +--------------------------------------------------------------+  |
-|                                                                    |
-|  +--------------------------------------------------------------+  |
-|  |                      插件系统                                 |  |
-|  |  +------------+  +-------------+  +------------------------+ |  |
-|  |  |   命令      |  |   提供商    |  |   钩子与中间件          | |  |
-|  |  +------------+  +-------------+  +------------------------+ |  |
-|  +--------------------------------------------------------------+  |
-|                                                                    |
-|  +--------------------------------------------------------------+  |
-|  |                      UI 层                                    |  |
-|  |  +------------+  +-------------+  +-------------+            |  |
-|  |  |  流式       |  |   语法      |  |   主题      |            |  |
-|  |  |  渲染器     |  |   高亮器    |  |   引擎      |            |  |
-|  |  +------------+  +-------------+  +-------------+            |  |
-|  +--------------------------------------------------------------+  |
-+------------------------------------------------------------------+
+aidev/
+|-- cmd/neocode/           # CLI 入口
+|-- internal/              # 核心内核
+|   |-- agent/             # Agent 循环 + Storm Breaker + 子代理 + 规划器
+|   |-- config/            # TOML 配置 + ccSwitch + 模型注册表（26 个模型）
+|   |-- provider/          # 3 个 Provider（OpenAI 兼容、Anthropic、Gemini）+ SSE + 重试
+|   |-- tool/              # 10 个内置工具 + MCP 客户端（stdio/HTTP/SSE）
+|   |-- permission/        # 权限策略引擎（4 种模式）
+|   |-- session/           # SQLite 会话持久化（WAL 模式）
+|   |-- skill/             # YAML+Markdown 技能系统
+|   |-- storage/           # SQLite 数据库层
+|   |-- types/             # 核心类型定义
+|   |-- cli/               # 从 GitHub Releases 自升级
+|   +-- util/              # 共享工具函数
+|-- desktop/               # Wails v2 桌面应用（React + TailwindCSS）
+|-- npm/                   # npm 分发（6 平台包 + 元包）
+|-- scripts/               # Shell 安装器 + Homebrew formula
+|-- legacy/                # TypeScript v1 代码（存档）
++-- docs/                  # 设计文档 + 配置参考
 ```
 
 ---
 
-## 贡献
-
-我们欢迎各种形式的贡献！无论是报告 bug、建议功能、改进文档还是提交代码 -- 每一份贡献都很重要。
-
-开始之前请阅读我们的[贡献指南](./CONTRIBUTING.md)。
+## 桌面应用
 
 ```bash
-# 克隆仓库
-git clone https://github.com/WuSuBuDuoMing/aidev.git
-cd aidev
+# macOS
+open NeoCode.dmg
 
-# 安装依赖
-npm install
+# Windows
+NeoCode-installer.exe
 
-# 启动开发模式
-npm run dev
-
-# 运行测试
-npm test
-
-# 运行代码检查
-npm run check
+# Linux
+tar xzf NeoCode-linux-amd64.tar.gz
+./neocode
 ```
+
+桌面应用基于 Wails v2 构建（Go 后端 + React 前端）。
+
+---
+
+## 安全特性
+
+- **API Key 加密存储**: 使用 AES-256-GCM 加密存储于 `~/.neocode/keystore.enc`
+- **路径沙箱**: 写操作限制在项目目录内
+- **无 Shell 注入**: Shell 命令使用参数数组，非字符串拼接
+- **权限模式**: 细粒度控制哪些工具可以执行
+- **Plan 模式**: 只读分析，不修改任何文件
+- **SSRF 防护**: Web 请求操作受到沙箱保护
+
+详见 [SECURITY.md](./SECURITY.md) 了解漏洞报告政策。
+
+---
+
+## API 参考
+
+### Provider 接口
+
+```go
+type Provider interface {
+    Generate(ctx context.Context, messages []Message, tools []ToolDefinition, systemPrompt string) (*GenerateResult, error)
+    Stream(ctx context.Context, messages []Message, tools []ToolDefinition, systemPrompt string, onChunk func(StreamChunk)) (*GenerateResult, error)
+    Name() string
+    DefaultModel() string
+}
+```
+
+### Tool 接口
+
+```go
+type Tool interface {
+    Name() string
+    Description() string
+    Schema() map[string]interface{}
+    Execute(ctx context.Context, args map[string]interface{}) (*ToolResult, error)
+    ReadOnly() bool
+}
+```
+
+---
+
+## 贡献指南
+
+我们欢迎各种形式的贡献 -- Bug 报告、功能请求、文档改进和代码提交。
+
+详见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
 
 ---
 
 ## 更新日志
 
-详细的变更历史请参阅 [CHANGELOG.md](./CHANGELOG.md)。
+详见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
 ## 许可证
 
-aidev 基于 [MIT 许可证](./LICENSE) 发布。
+NeoCode 基于 [MIT 许可证](./LICENSE) 发布。
 
 Copyright (c) 2024-2026 WuSuBuDuoMing
 
@@ -363,7 +332,7 @@ Copyright (c) 2024-2026 WuSuBuDuoMing
 
 <div align="center">
 
-**由开发者用心打造，为开发者服务。**
+**用心打造，为终端开发者服务。**
 
 [报告 Bug](https://github.com/WuSuBuDuoMing/aidev/issues/new?template=bug_report.md) | [功能建议](https://github.com/WuSuBuDuoMing/aidev/issues/new?template=feature_request.md) | [参与讨论](https://github.com/WuSuBuDuoMing/aidev/discussions)
 

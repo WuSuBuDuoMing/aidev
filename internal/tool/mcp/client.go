@@ -180,7 +180,7 @@ func (c *Client) initialize() error {
 		"capabilities":    map[string]interface{}{},
 		"clientInfo": map[string]interface{}{
 			"name":    "neocode",
-			"version": "2.0.0",
+			"version": "2.3.0",
 		},
 	})
 	if err != nil {

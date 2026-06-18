@@ -26,12 +26,12 @@ A clear and concise description of what actually happened.
 
 ## Environment
 
-- **aidev version**: <!-- Run `aidev --version` -->
-- **Node.js version**: <!-- Run `node --version` -->
+- **NeoCode version**: <!-- Run `neocode version` -->
+- **Go version**: <!-- Run `go version` (if building from source) -->
 - **Operating system**: <!-- e.g., Windows 11, macOS 14, Ubuntu 22.04 -->
 - **Terminal**: <!-- e.g., Windows Terminal, iTerm2, GNOME Terminal -->
 - **AI provider**: <!-- e.g., Claude, GPT, DeepSeek, Gemini, Ollama -->
-- **Model**: <!-- e.g., claude-sonnet-4-20250514, gpt-4o -->
+- **Model**: <!-- e.g., claude-sonnet-4-6, gpt-4o, deepseek-v4 -->
 
 ## Configuration
 
