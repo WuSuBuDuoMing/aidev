@@ -4,6 +4,64 @@ All notable changes to NeoCode will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.6.0] - 2026-06-22
+
+### Added
+
+- Comprehensive unit tests for `internal/storage` package: Open, Close, migrate, Exec, Query, QueryRow, foreign key cascade, double-close safety (9 tests)
+- Comprehensive unit tests for `internal/tool/builtin` package covering all 10 built-in tools: ReadTool, WriteTool, EditTool, GlobTool, GrepTool, BashTool, GitStatusTool, GitDiffTool, GitCommitTool, LsTool (35 tests)
+- Unit tests for `internal/tool/mcp` package: ParseMCPServerName, MCPTool.ToToolDefinition, MCPToolAdapter (Name, Description, ReadOnly, Schema), Manager lifecycle (10 tests)
+- JSDoc documentation for npm/build.mjs cross-compilation script with @fileoverview, @module, @param, @type, and @envvar annotations
+- MCP Plugins section enhanced with detailed `.mcp.json` configuration examples showing filesystem and custom server setups
+- README architecture diagram updated with context and monitor packages
+- API Reference section expanded with built-in tools table and sub-agents table
+
+### Changed
+
+- Version bumped to 2.6.0 across cmd/neocode/main.go, npm/build.mjs, and MCP client handshake
+- README.md and README.zh-CN.md updated with v2.6.0 references and improved documentation
+
+### Fixed
+
+- MCP client initialization now reports correct version 2.6.0 instead of stale 2.3.0
+
+## [2.5.0] - 2026-06-21
+
+### Added
+
+- Context compaction package (`internal/context`) with dynamic threshold calculation based on model context window size
+- Monitor package (`internal/monitor`) for real-time token usage tracking and cost estimation per model
+- I18n package (`internal/i18n`) for bilingual (English/Chinese) UI string management
+- Provider retry logic with exponential backoff, jitter, and rate-limit detection
+- SSE streaming support across all three provider implementations (OpenAI-compat, Anthropic, Gemini)
+- Tool result pruning for old, re-derivable outputs to save tokens in long conversations
+
+### Changed
+
+- Model registry expanded to 30+ models across 14 providers
+- Provider abstraction unified under single Provider interface with consistent SSE streaming
+- Configuration system upgraded with environment variable override support (NEOCODE_* prefix)
+- Permission engine redesigned with 4 modes and per-tool wildcard rules
+
+## [2.4.0] - 2026-06-20
+
+### Added
+
+- Sub-agent system with 4 built-in agents: explore, review, security, research
+- Plan mode for read-only codebase analysis before making changes
+- Skill system with YAML frontmatter + markdown body format
+- Project-level skill override of global skills
+- Storm Breaker death-spiral loop detection by (tool, error) signature
+- Parallel dispatch for read-only tool batches
+- Self-upgrade command with SHA256 verification and platform-specific binary detection
+- 12 slash commands (/help, /status, /providers, /model, /provider, /effort, /mode, /history, /resume, /skills, /new, /upgrade)
+
+### Changed
+
+- Agent loop refactored for cleaner separation of concerns
+- Tool registry extended with GetReadOnlyTools() and AllReadOnly() helpers
+- Session persistence improved with WAL mode and foreign key cascades
+
 ## [2.3.0] - 2026-06-18
 
 ### Added

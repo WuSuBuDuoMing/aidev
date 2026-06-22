@@ -1,16 +1,39 @@
 #!/usr/bin/env node
 /**
- * npm build script — cross-compiles NeoCode CLI for all platforms
- * and creates platform-specific npm packages.
+ * @fileoverview Cross-platform npm build script for NeoCode CLI.
+ *
+ * Compiles the Go CLI binary for 6 platform targets and generates
+ * platform-specific npm packages under `npm/platforms/`, plus a
+ * meta-package at `npm/neocode/` that delegates to the correct
+ * platform binary at runtime.
+ *
+ * Usage:
+ *   VERSION=2.6.0 node npm/build.mjs
+ *
+ * Environment Variables:
+ *   @envvar {string} [VERSION='2.6.0'] - Override the default version string.
+ *
+ * @module npm/build
  */
 
 import { execSync } from 'child_process';
 import { mkdirSync, writeFileSync, existsSync, copyFileSync } from 'fs';
 import { join } from 'path';
 
-const VERSION = process.env.VERSION || '2.3.0';
+/**
+ * Current build version, overridable via the VERSION env var.
+ * @type {string}
+ */
+const VERSION = process.env.VERSION || '2.6.0';
+
+/** Absolute path to the project root (cwd). */
 const ROOT = process.cwd();
 
+/**
+ * Supported platform targets for cross-compilation.
+ * Each entry maps a Go OS/ARCH pair to its npm package name.
+ * @type {Array<{os: string, arch: string, pkg: string}>}
+ */
 const targets = [
   { os: 'darwin',  arch: 'arm64',  pkg: '@neocode/cli-darwin-arm64'  },
   { os: 'darwin',  arch: 'amd64',  pkg: '@neocode/cli-darwin-x64'    },
@@ -22,6 +45,11 @@ const targets = [
 
 console.log(`Building NeoCode ${VERSION} for ${targets.length} targets...`);
 
+/**
+ * Build a single platform target and generate its npm package.json.
+ * @param {{os: string, arch: string, pkg: string}} target - Platform descriptor.
+ * @returns {void}
+ */
 for (const target of targets) {
   const ext = target.os === 'windows' ? '.exe' : '';
   const binName = `neocode${ext}`;
@@ -48,11 +76,22 @@ for (const target of targets) {
   }, null, 2));
 }
 
-// Create meta-package
+/**
+ * Create the meta-package that dispatches to the correct platform binary.
+ *
+ * The meta-package (@neocode/cli) ships a tiny JS shim
+ * (bin/neocode.js) that detects the current OS/ARCH and delegates
+ * to the appropriate @neocode/cli-<platform> package.
+ */
 const metaPkgDir = join(ROOT, 'neocode');
 mkdirSync(metaPkgDir, { recursive: true });
 mkdirSync(join(metaPkgDir, 'bin'), { recursive: true });
 
+/**
+ * Runtime dispatch shim — resolves the platform-specific binary
+ * and executes it with all forwarded CLI arguments.
+ * @type {string}
+ */
 writeFileSync(join(metaPkgDir, 'bin', 'neocode.js'), `#!/usr/bin/env node
 const { execFileSync } = require('child_process');
 const { join } = require('path');
@@ -61,6 +100,10 @@ const os = require('os');
 const platform = os.platform();
 const arch = os.arch();
 
+/**
+ * Mapping of platform+arch combinations to their npm package names.
+ * @type {Object<string, string>}
+ */
 const mapping = {
   'darwin-arm64':  '@neocode/cli-darwin-arm64',
   'darwin-x64':    '@neocode/cli-darwin-x64',
@@ -94,6 +137,7 @@ try {
 }
 `);
 
+/** @type {Object<string, string>} Platform package version map for optionalDependencies. */
 const optionalDeps = {};
 for (const target of targets) {
   optionalDeps[target.pkg] = VERSION;

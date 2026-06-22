@@ -130,20 +130,28 @@ NeoCode auto-discovers and connects on startup. Tools are prefixed with `mcp__<s
 aidev/
 |-- cmd/neocode/           # CLI entry point
 |-- internal/              # Core kernel
-|   |-- agent/             # Agent loop + Storm Breaker + sub-agents
-|   |-- config/            # TOML config + ccSwitch + model registry
-|   |-- provider/          # 3 providers (OpenAI-compat, Anthropic, Gemini) + SSE + retry
-|   |-- tool/              # 10 built-in tools + MCP client
+|   |-- agent/             # Agent loop + Storm Breaker + sub-agents + planner
+|   |-- cli/               # Self-upgrade from GitHub Releases
+|   |-- config/            # TOML config + ccSwitch + model registry (30+ models)
+|   |-- config/model/      # Model specs, context thresholds, pricing
+|   |-- context/           # Context compaction with dynamic thresholds
+|   |-- i18n/              # Bilingual (EN/CN) UI string management
+|   |-- monitor/           # Real-time token usage tracking and cost estimation
 |   |-- permission/        # Permission policy engine (4 modes)
-|   |-- session/           # SQLite session persistence
+|   |-- provider/          # 3 providers (OpenAI-compat, Anthropic, Gemini) + SSE + retry
+|   |-- session/           # SQLite session persistence (WAL mode)
 |   |-- skill/             # Skill system (YAML + Markdown)
-|   |-- storage/           # SQLite database layer
+|   |-- storage/           # SQLite database layer with migrations
+|   |-- tool/              # 10 built-in tools + MCP client (stdio/HTTP/SSE)
+|   |   |-- builtin/       # Built-in tool implementations with unit tests
+|   |   +-- mcp/           # MCP protocol client and tool adapter
 |   |-- types/             # Core type definitions
-|   +-- cli/               # Self-upgrade
-|-- desktop/               # Wails v2 desktop app
-|-- npm/                   # npm distribution
-|-- scripts/               # Shell installer + Homebrew
-+-- docs/                  # Design docs
+|   +-- util/              # Shared utilities
+|-- desktop/               # Wails v2 desktop app (React + TailwindCSS)
+|-- npm/                   # npm distribution (6 platform packages + meta)
+|-- scripts/               # Shell installer + Homebrew formula
+|-- legacy/                # TypeScript v1 code (archived)
++-- docs/                  # Design docs + configuration reference
 ```
 
 ## Security

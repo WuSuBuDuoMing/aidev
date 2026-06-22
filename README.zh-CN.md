@@ -231,15 +231,21 @@ aidev/
 |-- cmd/neocode/           # CLI 入口
 |-- internal/              # 核心内核
 |   |-- agent/             # Agent 循环 + Storm Breaker + 子代理 + 规划器
-|   |-- config/            # TOML 配置 + ccSwitch + 模型注册表（26 个模型）
-|   |-- provider/          # 3 个 Provider（OpenAI 兼容、Anthropic、Gemini）+ SSE + 重试
-|   |-- tool/              # 10 个内置工具 + MCP 客户端（stdio/HTTP/SSE）
+|   |-- cli/               # 从 GitHub Releases 自升级
+|   |-- config/            # TOML 配置 + ccSwitch + 模型注册表（30+ 模型）
+|   |-- config/model/      # 模型规格、上下文阈值、定价
+|   |-- context/           # 动态阈值上下文压缩
+|   |-- i18n/              # 双语（中/英）UI 字符串管理
+|   |-- monitor/           # 实时 Token 用量跟踪与费用估算
 |   |-- permission/        # 权限策略引擎（4 种模式）
+|   |-- provider/          # 3 个 Provider（OpenAI 兼容、Anthropic、Gemini）+ SSE + 重试
 |   |-- session/           # SQLite 会话持久化（WAL 模式）
 |   |-- skill/             # YAML+Markdown 技能系统
-|   |-- storage/           # SQLite 数据库层
+|   |-- storage/           # SQLite 数据库层（含迁移）
+|   |-- tool/              # 10 个内置工具 + MCP 客户端（stdio/HTTP/SSE）
+|   |   |-- builtin/       # 内置工具实现（含单元测试）
+|   |   +-- mcp/           # MCP 协议客户端与工具适配器
 |   |-- types/             # 核心类型定义
-|   |-- cli/               # 从 GitHub Releases 自升级
 |   +-- util/              # 共享工具函数
 |-- desktop/               # Wails v2 桌面应用（React + TailwindCSS）
 |-- npm/                   # npm 分发（6 平台包 + 元包）

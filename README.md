@@ -274,15 +274,21 @@ aidev/
 |-- cmd/neocode/           # CLI entry point
 |-- internal/              # Core kernel
 |   |-- agent/             # Agent loop + Storm Breaker + sub-agents + planner
-|   |-- config/            # TOML config + ccSwitch + model registry (26 models)
-|   |-- provider/          # 3 providers (OpenAI-compat, Anthropic, Gemini) + SSE + retry
-|   |-- tool/              # 10 built-in tools + MCP client (stdio/HTTP/SSE)
+|   |-- cli/               # Self-upgrade from GitHub Releases
+|   |-- config/            # TOML config + ccSwitch + model registry (30+ models)
+|   |-- config/model/      # Model specs, context thresholds, pricing
+|   |-- context/           # Context compaction with dynamic thresholds
+|   |-- i18n/              # Bilingual (EN/CN) UI string management
+|   |-- monitor/           # Real-time token usage tracking and cost estimation
 |   |-- permission/        # Permission policy engine (4 modes)
+|   |-- provider/          # 3 providers (OpenAI-compat, Anthropic, Gemini) + SSE + retry
 |   |-- session/           # SQLite session persistence (WAL mode)
 |   |-- skill/             # YAML+Markdown skill system
-|   |-- storage/           # SQLite database layer
+|   |-- storage/           # SQLite database layer with migrations
+|   |-- tool/              # 10 built-in tools + MCP client (stdio/HTTP/SSE)
+|   |   |-- builtin/       # Built-in tool implementations with unit tests
+|   |   +-- mcp/           # MCP protocol client and tool adapter
 |   |-- types/             # Core type definitions
-|   |-- cli/               # Self-upgrade from GitHub Releases
 |   +-- util/              # Shared utilities
 |-- desktop/               # Wails v2 desktop app (React + TailwindCSS)
 |-- npm/                   # npm distribution (6 platform packages + meta)
