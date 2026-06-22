@@ -26,7 +26,7 @@ import (
 	"github.com/WuSuBuDuoMing/aidev/internal/types"
 )
 
-const Version = "2.6.0"
+const Version = "2.9.0"
 
 func main() {
 	if len(os.Args) > 1 {

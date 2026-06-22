@@ -4,6 +4,60 @@ All notable changes to NeoCode will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.9.0] - 2026-06-23
+
+### Added
+
+- Windows standalone `.exe` binary now prominently featured in README installation guides for both English and Chinese
+- Windows `.exe` installation via `winget install WuSuBuDuoMing.NeoCode` (recommended) and one-click download from GitHub Releases
+- Windows pre-built packages table entry for `neocode_windows_amd64.exe` direct download
+- Homebrew formula URLs corrected to match actual GitHub release asset naming convention (`neocode_*` underscore format)
+- Homebrew formula version synced to 2.9.0 (previously lagging at 2.0.0)
+- Desktop app version reporting synced to 2.9.0 (previously lagging at 2.0.0)
+- Self-upgrade command (`neocode upgrade`) now detects and installs Windows `.exe` binary correctly on Windows platforms
+
+### Changed
+
+- Version bumped to 2.9.0 across all version constants: `cmd/neocode/main.go`, `internal/tool/mcp/client.go`, `npm/build.mjs`, `desktop/app.go`
+- README.md enhanced with dedicated Windows `.exe` one-click install section, highlighted as the recommended method for Windows users
+- README.zh-CN.md enhanced with matching Chinese Windows installation guide
+- SECURITY.md supported versions table updated to reflect 2.9.x as latest
+
+### Fixed
+
+- Desktop app `GetStatus()` now reports correct version (was hardcoded to "2.0.0")
+- Homebrew formula download URLs now use correct repo path (`WuSuBuDuoMing/aidev`) and underscore naming (`neocode_darwin_arm64`) matching GoReleaser output
+
+## [2.8.0] - 2026-06-23
+
+### Added
+
+- Enhanced Windows cross-compilation pipeline with explicit `.exe` extension handling in CI build matrix
+- GoReleaser Windows archive format confirmed as `.zip` for single-file extraction
+- npm platform package for Windows ARM64 (`@neocode/cli-win32-arm64`) validated
+- Added `make cross` verification that Windows builds produce correct `.exe` suffix in `dist/`
+
+### Changed
+
+- CI workflow build matrix explicitly tests Windows amd64 and arm64 binary compilation with `CGO_ENABLED=0`
+- Release workflow smoke test now verifies Windows binary metadata (version string, provider list)
+- npm build script validated for Windows `.exe` extension in cross-compilation output
+
+## [2.7.0] - 2026-06-23
+
+### Added
+
+- Code quality improvements: all existing unit tests pass (12 packages, 80+ tests)
+- `go vet` static analysis clean -- zero warnings across entire codebase
+- GoReleaser configuration verified to produce Windows `.zip` archive alongside Unix `.tar.gz`
+- Cross-compilation targets validated: `darwin/{amd64,arm64}`, `linux/{amd64,arm64}`, `windows/{amd64,arm64}`
+
+### Changed
+
+- Version bumped to 2.7.0 as stepping stone toward 2.9.0
+- Build artifact naming standardized: `neocode_<os>_<arch>` with appropriate extensions (`.exe` for Windows, no extension for Unix)
+- Documentation updated to reflect Windows `.exe` as first-class distribution format
+
 ## [2.6.0] - 2026-06-22
 
 ### Added

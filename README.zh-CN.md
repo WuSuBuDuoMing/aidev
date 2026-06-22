@@ -126,16 +126,30 @@ sudo mv neocode /usr/local/bin/
 sudo dpkg -i neocode_linux_amd64.deb
 ```
 
-### Windows -- 独立二进制
+### Windows -- 独立二进制 (.exe)
 
-从 [GitHub Releases](https://github.com/WuSuBuDuoMing/aidev/releases) 下载 `neocode_windows_amd64.zip`，解压后将 `neocode.exe` 添加到 PATH。
+从 [GitHub Releases](https://github.com/WuSuBuDuoMing/aidev/releases) 下载 `neocode_windows_amd64.zip`，解压后即可使用 `neocode.exe`。
 
 ```powershell
-# PowerShell 下载
+# 一键下载安装（推荐）
 Invoke-WebRequest -Uri "https://github.com/WuSuBuDuoMing/aidev/releases/latest/download/neocode_windows_amd64.zip" -OutFile neocode.zip
 Expand-Archive -Path neocode.zip -DestinationPath C:\neocode
 # 将 C:\neocode 添加到系统 PATH
+
+# 或通过 winget（即将上线）
+winget install WuSuBuDuoMing.NeoCode
 ```
+
+**Windows 用户快速上手：**
+
+```powershell
+# 安装完成后，直接运行：
+neocode version          # 验证安装
+neocode                  # 启动交互式聊天
+neocode "你好，请帮我优化这段代码"   # 单次提问
+```
+
+Windows 构建支持 **x86_64**（`neocode_windows_amd64.zip`）和 **ARM64**（`neocode_windows_arm64.zip`），零外部依赖。
 
 ### Docker
 
@@ -164,6 +178,7 @@ docker run -it --rm \
 | Linux (ARM64) | `.tar.gz` | `neocode_linux_arm64.tar.gz` |
 | Linux (Debian/Ubuntu) | `.deb` | `neocode_linux_amd64.deb` |
 | Windows (x86_64) | `.zip` | `neocode_windows_amd64.zip` |
+| Windows (ARM64) | `.zip` | `neocode_windows_arm64.zip` |
 | Docker | 镜像 | `ghcr.io/wusubuduoming/neocode` |
 
 所有二进制均可在 [Releases](https://github.com/WuSuBuDuoMing/aidev/releases) 页面获取，附带 SHA256 校验和。

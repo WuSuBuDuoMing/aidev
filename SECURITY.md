@@ -22,8 +22,8 @@ We take the security of NeoCode seriously. If you discover a security vulnerabil
 
 | Version | Supported |
 |---------|-----------|
-| 2.3.x (latest) | Yes |
-| 2.2.x | Critical fixes only |
+| 2.9.x (latest) | Yes |
+| 2.8.x | Critical fixes only |
 | < 2.2.0 | No |
 
 ## Response Time

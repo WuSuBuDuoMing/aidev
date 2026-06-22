@@ -115,7 +115,7 @@ func (a *App) GetStatus() map[string]interface{} {
 		sessions, _ = a.sessMgr.List(10)
 	}
 	return map[string]interface{}{
-		"version":        "2.0.0",
+		"version":        "2.9.0",
 		"provider":       a.cfg.DefaultProvider,
 		"model":          a.modelName,
 		"contextWindow":  spec.ContextWindow,

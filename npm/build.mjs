@@ -8,10 +8,10 @@
  * platform binary at runtime.
  *
  * Usage:
- *   VERSION=2.6.0 node npm/build.mjs
+ *   VERSION=2.9.0 node npm/build.mjs
  *
  * Environment Variables:
- *   @envvar {string} [VERSION='2.6.0'] - Override the default version string.
+ *   @envvar {string} [VERSION='2.9.0'] - Override the default version string.
  *
  * @module npm/build
  */
@@ -24,7 +24,7 @@ import { join } from 'path';
  * Current build version, overridable via the VERSION env var.
  * @type {string}
  */
-const VERSION = process.env.VERSION || '2.6.0';
+const VERSION = process.env.VERSION || '2.9.0';
 
 /** Absolute path to the project root (cwd). */
 const ROOT = process.cwd();
