@@ -59,21 +59,114 @@
 
 ## 快速开始
 
-### 安装
+## 安装
+
+NeoCode 支持 **macOS**、**Linux** 和 **Windows**，选择适合你的方式。
+
+### npm（全平台 -- 推荐）
 
 ```bash
-# npm 安装（推荐）
 npm i -g @neocode/cli
+```
 
-# Homebrew（macOS / Linux）
+### Homebrew（macOS / Linux）
+
+```bash
 brew install neocode/neocode/neocode
+```
 
-# Shell 安装脚本
+### Shell 安装脚本（macOS / Linux）
+
+```bash
 curl -fsSL https://get.neocode.dev | bash
+```
 
-# 从源码安装
+### Go 安装（全平台）
+
+需要 Go 1.22+。
+
+```bash
 go install github.com/WuSuBuDuoMing/aidev/cmd/neocode@latest
 ```
+
+### macOS -- 独立二进制
+
+从 [GitHub Releases](https://github.com/WuSuBuDuoMing/aidev/releases) 下载最新版本：
+
+```bash
+# Intel 芯片
+curl -fsSL -o neocode.tar.gz https://github.com/WuSuBuDuoMing/aidev/releases/latest/download/neocode_darwin_amd64.tar.gz
+tar xzf neocode.tar.gz
+sudo mv neocode /usr/local/bin/
+
+# Apple Silicon（M1/M2/M3/M4）
+curl -fsSL -o neocode.tar.gz https://github.com/WuSuBuDuoMing/aidev/releases/latest/download/neocode_darwin_arm64.tar.gz
+tar xzf neocode.tar.gz
+sudo mv neocode /usr/local/bin/
+```
+
+### Linux -- 独立二进制
+
+```bash
+# x86_64
+curl -fsSL -o neocode.tar.gz https://github.com/WuSuBuDuoMing/aidev/releases/latest/download/neocode_linux_amd64.tar.gz
+tar xzf neocode.tar.gz
+sudo mv neocode /usr/local/bin/
+
+# ARM64
+curl -fsSL -o neocode.tar.gz https://github.com/WuSuBuDuoMing/aidev/releases/latest/download/neocode_linux_arm64.tar.gz
+tar xzf neocode.tar.gz
+sudo mv neocode /usr/local/bin/
+```
+
+### Linux -- APT（Debian/Ubuntu）
+
+```bash
+# 从 GitHub Releases 下载 .deb 包，然后：
+sudo dpkg -i neocode_linux_amd64.deb
+```
+
+### Windows -- 独立二进制
+
+从 [GitHub Releases](https://github.com/WuSuBuDuoMing/aidev/releases) 下载 `neocode_windows_amd64.zip`，解压后将 `neocode.exe` 添加到 PATH。
+
+```powershell
+# PowerShell 下载
+Invoke-WebRequest -Uri "https://github.com/WuSuBuDuoMing/aidev/releases/latest/download/neocode_windows_amd64.zip" -OutFile neocode.zip
+Expand-Archive -Path neocode.zip -DestinationPath C:\neocode
+# 将 C:\neocode 添加到系统 PATH
+```
+
+### Docker
+
+```bash
+# 本地构建
+docker build -t neocode .
+docker run -it --rm \
+  -e DEEPSEEK_API_KEY=$DEEPSEEK_API_KEY \
+  -v $(pwd):/workspace \
+  neocode
+
+# 或从 GitHub Container Registry 拉取（即将上线）
+docker run -it --rm \
+  -e DEEPSEEK_API_KEY=$DEEPSEEK_API_KEY \
+  -v $(pwd):/workspace \
+  ghcr.io/wusubuduoming/neocode:latest
+```
+
+### 预构建包汇总
+
+| 平台 | 格式 | 文件名 |
+|------|------|--------|
+| macOS (Intel) | `.tar.gz` | `neocode_darwin_amd64.tar.gz` |
+| macOS (Apple Silicon) | `.tar.gz` | `neocode_darwin_arm64.tar.gz` |
+| Linux (x86_64) | `.tar.gz` | `neocode_linux_amd64.tar.gz` |
+| Linux (ARM64) | `.tar.gz` | `neocode_linux_arm64.tar.gz` |
+| Linux (Debian/Ubuntu) | `.deb` | `neocode_linux_amd64.deb` |
+| Windows (x86_64) | `.zip` | `neocode_windows_amd64.zip` |
+| Docker | 镜像 | `ghcr.io/wusubuduoming/neocode` |
+
+所有二进制均可在 [Releases](https://github.com/WuSuBuDuoMing/aidev/releases) 页面获取，附带 SHA256 校验和。
 
 ### 配置 API Key
 

@@ -60,21 +60,117 @@ English | [Chinese](README.zh-CN.md)
 
 ## Quick Start
 
-### Installation
+## Installation
+
+NeoCode runs on **macOS**, **Linux**, and **Windows**. Choose the method that suits you best.
+
+### npm (All Platforms -- Recommended)
 
 ```bash
-# npm (recommended)
 npm i -g @neocode/cli
+```
 
-# Homebrew (macOS / Linux)
+### Homebrew (macOS / Linux)
+
+```bash
 brew install neocode/neocode/neocode
+```
 
-# Shell installer
+### Shell Installer (macOS / Linux)
+
+```bash
 curl -fsSL https://get.neocode.dev | bash
+```
 
-# Go install from source
+### Go Install (All Platforms)
+
+Requires Go 1.22+.
+
+```bash
 go install github.com/WuSuBuDuoMing/aidev/cmd/neocode@latest
 ```
+
+### macOS -- Standalone Binary
+
+Download the latest release from [GitHub Releases](https://github.com/WuSuBuDuoMing/aidev/releases):
+
+```bash
+# Intel
+curl -fsSL -o neocode.tar.gz https://github.com/WuSuBuDuoMing/aidev/releases/latest/download/neocode_darwin_amd64.tar.gz
+tar xzf neocode.tar.gz
+sudo mv neocode /usr/local/bin/
+
+# Apple Silicon (M1/M2/M3/M4)
+curl -fsSL -o neocode.tar.gz https://github.com/WuSuBuDuoMing/aidev/releases/latest/download/neocode_darwin_arm64.tar.gz
+tar xzf neocode.tar.gz
+sudo mv neocode /usr/local/bin/
+```
+
+### Linux -- Standalone Binary
+
+```bash
+# x86_64
+curl -fsSL -o neocode.tar.gz https://github.com/WuSuBuDuoMing/aidev/releases/latest/download/neocode_linux_amd64.tar.gz
+tar xzf neocode.tar.gz
+sudo mv neocode /usr/local/bin/
+
+# ARM64
+curl -fsSL -o neocode.tar.gz https://github.com/WuSuBuDuoMing/aidev/releases/latest/download/neocode_linux_arm64.tar.gz
+tar xzf neocode.tar.gz
+sudo mv neocode /usr/local/bin/
+```
+
+### Linux -- APT (Debian/Ubuntu)
+
+```bash
+# Download the .deb package from GitHub Releases, then:
+sudo dpkg -i neocode_linux_amd64.deb
+```
+
+### Windows -- Standalone Binary
+
+Download `neocode_windows_amd64.zip` from [GitHub Releases](https://github.com/WuSuBuDuoMing/aidev/releases), extract, and add `neocode.exe` to your PATH.
+
+```powershell
+# Using winget (coming soon)
+winget install WuSuBuDuoMing.NeoCode
+
+# Or via PowerShell
+Invoke-WebRequest -Uri "https://github.com/WuSuBuDuoMing/aidev/releases/latest/download/neocode_windows_amd64.zip" -OutFile neocode.zip
+Expand-Archive -Path neocode.zip -DestinationPath C:\neocode
+# Add C:\neocode to your system PATH
+```
+
+### Docker
+
+```bash
+# Build locally
+docker build -t neocode .
+docker run -it --rm \
+  -e DEEPSEEK_API_KEY=$DEEPSEEK_API_KEY \
+  -v $(pwd):/workspace \
+  neocode
+
+# Or pull from GitHub Container Registry (coming soon)
+docker run -it --rm \
+  -e DEEPSEEK_API_KEY=$DEEPSEEK_API_KEY \
+  -v $(pwd):/workspace \
+  ghcr.io/wusubuduoming/neocode:latest
+```
+
+### Pre-built Packages Summary
+
+| Platform | Format | Download |
+|----------|--------|----------|
+| macOS (Intel) | `.tar.gz` | `neocode_darwin_amd64.tar.gz` |
+| macOS (Apple Silicon) | `.tar.gz` | `neocode_darwin_arm64.tar.gz` |
+| Linux (x86_64) | `.tar.gz` | `neocode_linux_amd64.tar.gz` |
+| Linux (ARM64) | `.tar.gz` | `neocode_linux_arm64.tar.gz` |
+| Linux (Debian/Ubuntu) | `.deb` | `neocode_linux_amd64.deb` |
+| Windows (x86_64) | `.zip` | `neocode_windows_amd64.zip` |
+| Docker | image | `ghcr.io/wusubuduoming/neocode` |
+
+All binaries are available on the [Releases](https://github.com/WuSuBuDuoMing/aidev/releases) page with SHA256 checksums.
 
 ### Configure API Key
 

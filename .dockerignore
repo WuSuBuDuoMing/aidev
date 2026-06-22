@@ -1,0 +1,29 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+bin/
+dist/
+*.exe
+
+# Node
+node_modules/
+
+# Desktop app (not needed in CLI image)
+desktop/
+
+# Documentation
+docs/
+*.md
+!go.sum
