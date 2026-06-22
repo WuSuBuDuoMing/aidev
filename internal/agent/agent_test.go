@@ -47,13 +47,24 @@ func TestStormBreaker_Record_BreachThreshold(t *testing.T) {
 func TestStormBreaker_DifferentErrors(t *testing.T) {
 	sb := NewStormBreaker()
 
-	// Different error signatures should not combine
-	for i := 0; i < StormBreakThreshold; i++ {
+	// Different (tool, error) signatures should be tracked independently.
+	// After interleaving distinct errors, each should count separately.
+	for i := 0; i < StormBreakThreshold-1; i++ {
 		sb.Record("readFile", "file not found")
-		breached := sb.Record("writeFile", "permission denied")
-		if breached {
-			t.Fatal("Different error signatures should not combine")
-		}
+		sb.Record("writeFile", "permission denied")
+	}
+
+	// Each has been recorded StormBreakThreshold-1 times.
+	// One more call for a *different* error should not cause a breach.
+	breached := sb.Record("runCommand", "exit status 1")
+	if breached {
+		t.Fatal("A fresh error signature should not breach immediately")
+	}
+
+	// Each original signature is still at StormBreakThreshold-1 — not combined.
+	// Reaching the threshold should require exactly StormBreakThreshold of the *same* signature.
+	if !sb.Record("readFile", "file not found") {
+		t.Fatal("readFile should breach at exactly StormBreakThreshold")
 	}
 }
 
@@ -62,9 +73,9 @@ func TestEstimateTokens(t *testing.T) {
 		input    string
 		expected int
 	}{
-		{"", 1},    // (0+3)/4 = 0, but min is 1 due to integer math
-		{"hi", 1},  // (2+3)/4 = 1
-		{"hello world test", 5}, // (16+3)/4 = 4
+		{"", 0},                 // (0+3)/4 = 0
+		{"hi", 1},               // (2+3)/4 = 1
+		{"hello world test", 4}, // (16+3)/4 = 4
 	}
 
 	for _, tt := range tests {
